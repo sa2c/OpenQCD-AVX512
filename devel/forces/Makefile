@@ -68,11 +68,16 @@ UTILS = endian error hsum mutils utils wspace
 
 VFLDS = vflds vinit vcom vdcom
 
-MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
+STD_MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
           $(LATTICE) $(LINALG) $(LINSOLV) $(LITTLE) $(MDFLDS) $(RANDOM) \
           $(RATFCTS) $(SAP) $(SFLDS) $(SU3FCTS) $(SW_TERM) $(TCHARGE) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS)
 
+AVX512_MODULES = Dw_avx512 Dw_dble_avx512 salg_avx512 salg_dble_avx512 \
+				 	pauli_avx512 pauli_dble_avx512
+
+AVX512_ASM_MODULES = Dw_avx512_asm Dw_dble_avx512_asm salg_avx512_asm \
+ 					salg_dble_avx512_asm pauli_avx512_asm pauli_dble_avx512_asm
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -88,7 +93,8 @@ VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
           $(MDIR)/utils:$(MDIR)/forces:$(MDIR)/sflds:$(MDIR)/dirac:\
 	  $(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
 	  $(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
-          $(MDIR)/update:$(MDIR)/ratfcts
+          $(MDIR)/update:$(MDIR)/ratfcts\
+					$(MDIR)/linalg/avx512:$(MDIR)/dirac/avx512:$(MDIR)/sw_term/avx512
 
 
 # additional include directories
@@ -106,10 +112,10 @@ LIBPATH = $(MPI_HOME)/lib
 # scheduling and optimization options
 
 CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
-         -Wall -Wno-long-long -Wstrict-prototypes -Werror \
-         -O -mno-avx -Dx64 -DPM
+         -Wall -Wno-long-long -Wstrict-prototypes \
+         -O2 -DAVX512
 
-LFLAGS =
+LFLAGS = $(CFLAGS)
 
 # -DCGNE_DBG -DFGCR_DBG -DMSCG_DBG
 # -DDFL_MODES_DBG
@@ -121,25 +127,39 @@ SHELL=/bin/bash
 CC=mpicc
 CLINKER=$(CC)
 
+#Check CFLAGS to find which AVX512 flags are active
+ifneq (,$(findstring AVX512_ASM,$(CFLAGS)))
+MODULES= $(STD_MODULES) $(AVX512_ASM_MODULES)
+else
+ifneq (,$(findstring AVX512,$(CFLAGS)))
+MODULES= $(STD_MODULES) $(AVX512_MODULES)
+else
+MODULES= $(STD_MODULES)
+endif
+endif
+
 PGMS= $(MAIN) $(MODULES)
 
 -include $(addsuffix .d,$(PGMS))
 
 
 # rule to make dependencies
-
 $(addsuffix .d,$(PGMS)): %.d: %.c Makefile
 	@ $(GCC) -ansi $< -MM $(addprefix -I,$(INCPATH)) -o $@
 
 
 # rule to compile source programs
-
-$(addsuffix .o,$(PGMS)): %.o: %.c Makefile
+$(addsuffix .o,$(MAIN) $(STD_MODULES)): %.o: %.c Makefile
 	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
+# pattern to compile files in the avx512 directiories
+$(addsuffix .o,$(AVX512_MODULES)): %.o: %.c Makefile
+	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
+
+$(addsuffix .o,$(AVX512_ASM_MODULES)): %.o: %.s Makefile
+	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
 # rule to link object files
-
 $(MAIN): %: %.o $(addsuffix .o,$(MODULES)) Makefile
 	$(CLINKER) $< $(addsuffix .o,$(MODULES)) $(LFLAGS) $(LOGOPTION) \
         $(addprefix -L,$(LIBPATH)) $(addprefix -l,$(LIBS)) -o $@

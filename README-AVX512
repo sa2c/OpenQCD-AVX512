@@ -1,0 +1,26 @@
+An optimized version of openQCD-1.6 for Intel processors with 512 bit vector width
+==================================================================================
+
+DESCRIPTION
+
+   This code extends openQCD-1.6 with an implementation of the Dirac operator
+   with intel Intrincic operations in order to use the full vector width on Intel
+   Skylake, Knight Landing and other processors.
+
+   The extension is enabled with the -DAVX521 flag in CFLAGS in the Makefiles.
+
+   To enable assembly versions pre-compiled for Skylake Xeon Scalable CPUs also include -DAVX512_ASM in CFLAGS.
+
+
+
+AUTHORS
+
+   This patch extends the openQCD code written by Martin Luscher, Stefan
+   Schaefer and other contributors (see http://luscher.web.cern.ch/luscher/openQCD/).
+
+   The batch has been written by and tested by Jarno Rantaharju and Michele Messiti.
+
+LICENSE
+
+   The code may be used under the terms of the GNU General Public License (GPL)
+   http://www.fsf.org/licensing/licenses/gpl.html

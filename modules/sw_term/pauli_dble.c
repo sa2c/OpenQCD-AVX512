@@ -87,6 +87,45 @@ static complex_dble aa[36] ALIGNED16;
 static complex_dble cc[6] ALIGNED16;
 static complex_dble dd[6] ALIGNED16;
 
+
+
+#if (defined AVX512)
+
+void mul_pauli2_dble_avx512(double mu, pauli_dble *m, weyl_dble *s, weyl_dble *r);
+void mul_pauli2_dble(double mu, pauli_dble *m, weyl_dble *s, weyl_dble *r)
+{
+  mul_pauli2_dble_avx512( mu, m, s, r );
+}
+
+int fwd_house_avx512(double eps, complex_dble *aa, complex_dble *dd, double * rr );
+static int fwd_house(double eps ){
+  return fwd_house_avx512( eps, aa, dd, rr );
+}
+
+void solv_sys_avx512( complex_dble *aa, complex_dble *dd );
+static void solv_sys(void){
+  solv_sys_avx512( aa, dd );
+}
+
+void bck_house_avx512( complex_dble *aa, complex_dble *dd, double * rr );
+static void bck_house(void){
+  bck_house_avx512( aa, dd, rr );
+}
+
+#else
+
+void mul_pauli2_dble(double mu, pauli_dble *m, weyl_dble *s, weyl_dble *r)
+{
+  mul_pauli_dble( mu, m, s, r );
+  mul_pauli_dble( -mu, m+1, s+1, r+1 );
+}
+#endif
+
+
+
+
+
+
 #if (defined x64)
 #include "sse2.h"
 
@@ -997,6 +1036,7 @@ void mul_pauli_dble(double mu,pauli_dble *m,weyl_dble *s,weyl_dble *r)
 
 #endif
 
+#ifndef AVX512
 static int fwd_house(double eps)
 {
    int i,j,k,ifail;
@@ -1313,10 +1353,12 @@ static void bck_house(void)
    }
 }
 
+#endif
+
 #else
 
-static weyl_dble rs;
 
+static weyl_dble rs;
 
 void mul_pauli_dble(double mu,pauli_dble *m,weyl_dble *s,weyl_dble *r)
 {
@@ -1423,7 +1465,7 @@ void mul_pauli_dble(double mu,pauli_dble *m,weyl_dble *s,weyl_dble *r)
    (*r)=rs;
 }
 
-
+#ifndef AVX512
 static int fwd_house(double eps)
 {
    int i,j,k,ifail;
@@ -1579,6 +1621,8 @@ static void bck_house(void)
       }
    }
 }
+
+#endif
 
 #endif
 
@@ -1780,10 +1824,8 @@ void apply_sw_dble(int vol,double mu,pauli_dble *m,spinor_dble *s,
 
    for (;ps<pm;ps++)
    {
-      mul_pauli_dble(mu,m,(*ps).w,(*pr).w);
-      m+=1;
-      mul_pauli_dble(-mu,m,(*ps).w+1,(*pr).w+1);
-      m+=1;
+      mul_pauli2_dble( mu, m, (*ps).w, (*pr).w );
+      m+=2;
       pr+=1;
    }
 }

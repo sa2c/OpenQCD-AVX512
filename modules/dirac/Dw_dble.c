@@ -1,4 +1,3 @@
-
 /*******************************************************************************
 *
 * File Dw_dble.c
@@ -121,7 +120,22 @@ static const spinor_dble sd0={{{0.0,0.0},{0.0,0.0},{0.0,0.0}},
                               {{0.0,0.0},{0.0,0.0},{0.0,0.0}}};
 static spin_t rs ALIGNED32;
 
-#if (defined AVX)
+#if ( defined AVX512 )
+
+void doe_dble_avx512(int *piup,int *pidn,su3_dble *u,spinor_dble *pk,double coe, spin_t *rs);
+static void doe(int *piup,int *pidn,su3_dble *u,spinor_dble *pk)
+{
+  doe_dble_avx512( piup, pidn, u, pk, coe, &rs );
+}
+
+void deo_dble_avx512( int *piup, int *pidn, su3_dble *u,  spinor_dble *pl, double ceo, spin_t *rs);
+static void deo(int *piup, int *pidn, su3_dble *u, spinor_dble *pl)
+{
+  deo_dble_avx512( piup, pidn, u, pl, ceo, &rs );
+}
+
+
+#elif ( defined AVX )
 #include "avx.h"
 
 #define _load_cst(c) \
@@ -1412,9 +1426,7 @@ void Dw_dble(double mu,spinor_dble *s,spinor_dble *r)
          {
             doe(piup,pidn,u,s);
 
-            mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-            mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
-
+            mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
             _vector_add_assign((*ro).s.c1,rs.s.c1);
             _vector_add_assign((*ro).s.c2,rs.s.c2);
             _vector_add_assign((*ro).s.c3,rs.s.c3);
@@ -1442,9 +1454,7 @@ void Dw_dble(double mu,spinor_dble *s,spinor_dble *r)
       {
          doe(piup,pidn,u,s);
 
-         mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-         mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
-
+         mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
          _vector_add_assign((*ro).s.c1,rs.s.c1);
          _vector_add_assign((*ro).s.c2,rs.s.c2);
          _vector_add_assign((*ro).s.c3,rs.s.c3);
@@ -1488,8 +1498,7 @@ void Dwee_dble(double mu,spinor_dble *s,spinor_dble *r)
 
          if ((t>0)&&((t<(N0-1))||(bc!=0)))
          {
-            mul_pauli_dble(mu,m,(*se).w,(*re).w);
-            mul_pauli_dble(-mu,m+1,(*se).w+1,(*re).w+1);
+            mul_pauli2_dble(mu, m, (*se).w, (*re).w);
          }
          else
          {
@@ -1505,9 +1514,7 @@ void Dwee_dble(double mu,spinor_dble *s,spinor_dble *r)
    {
       for (;m<mm;m+=2)
       {
-         mul_pauli_dble(mu,m,(*se).w,(*re).w);
-         mul_pauli_dble(-mu,m+1,(*se).w+1,(*re).w+1);
-
+         mul_pauli2_dble(mu, m, (*se).w, (*re).w);
          se+=1;
          re+=1;
       }
@@ -1542,8 +1549,7 @@ void Dwoo_dble(double mu,spinor_dble *s,spinor_dble *r)
 
          if ((t>0)&&((t<(N0-1))||(bc!=0)))
          {
-            mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-            mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
+            mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
          }
          else
          {
@@ -1559,9 +1565,7 @@ void Dwoo_dble(double mu,spinor_dble *s,spinor_dble *r)
    {
       for (;m<mm;m+=2)
       {
-         mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-         mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
-
+         mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
          so+=1;
          ro+=1;
       }
@@ -1716,9 +1720,7 @@ void Dwhat_dble(double mu,spinor_dble *s,spinor_dble *r)
          {
             doe(piup,pidn,u,s);
 
-            mul_pauli_dble(0.0,m,rs.w,rs.w);
-            mul_pauli_dble(0.0,m+1,rs.w+1,rs.w+1);
-
+            mul_pauli2_dble(0.0, m, rs.w, rs.w);
             deo(piup,pidn,u,r);
          }
 
@@ -1732,9 +1734,7 @@ void Dwhat_dble(double mu,spinor_dble *s,spinor_dble *r)
       for (;u<um;u+=8)
       {
          doe(piup,pidn,u,s);
-
-         mul_pauli_dble(0.0,m,rs.w,rs.w);
-         mul_pauli_dble(0.0,m+1,rs.w+1,rs.w+1);
+         mul_pauli2_dble(0.0, m, rs.w, rs.w);
 
          deo(piup,pidn,u,r);
 
@@ -1815,9 +1815,7 @@ void Dw_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
          if (((pidn[0]<vol)||(!ibd))&&((piup[0]<vol)||(!ibu)))
          {
             doe(piup,pidn,u,s);
-
-            mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-            mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
+            mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
 
             _vector_add_assign((*ro).s.c1,rs.s.c1);
             _vector_add_assign((*ro).s.c2,rs.s.c2);
@@ -1852,8 +1850,7 @@ void Dw_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
       {
          doe(piup,pidn,u,s);
 
-         mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-         mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
+         mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
 
          _vector_add_assign((*ro).s.c1,rs.s.c1);
          _vector_add_assign((*ro).s.c2,rs.s.c2);
@@ -1916,8 +1913,7 @@ void Dwee_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
       {
          if (((pidn[0]<vol)||(!ibd))&&((piup[0]<vol)||(!ibu)))
          {
-            mul_pauli_dble(mu,m,(*se).w,(*re).w);
-            mul_pauli_dble(-mu,m+1,(*se).w+1,(*re).w+1);
+            mul_pauli2_dble(mu, m, (*se).w, (*re).w);
          }
          else
          {
@@ -1935,8 +1931,7 @@ void Dwee_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
    {
       for (;m<mm;m+=2)
       {
-         mul_pauli_dble(mu,m,(*se).w,(*re).w);
-         mul_pauli_dble(-mu,m+1,(*se).w+1,(*re).w+1);
+         mul_pauli2_dble(mu, m, (*se).w, (*re).w);
 
          se+=1;
          re+=1;
@@ -1994,8 +1989,7 @@ void Dwoo_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
       {
          if (((pidn[0]<vol)||(!ibd))&&((piup[0]<vol)||(!ibu)))
          {
-            mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-            mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
+            mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
          }
          else
          {
@@ -2013,9 +2007,7 @@ void Dwoo_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
    {
       for (;m<mm;m+=2)
       {
-         mul_pauli_dble(mu,m,(*so).w,(*ro).w);
-         mul_pauli_dble(-mu,m+1,(*so).w+1,(*ro).w+1);
-
+         mul_pauli2_dble(mu, m, (*so).w, (*ro).w);
          so+=1;
          ro+=1;
       }
@@ -2242,8 +2234,7 @@ void Dwhat_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
          {
             doe(piup,pidn,u,s);
 
-            mul_pauli_dble(0.0f,m,rs.w,rs.w);
-            mul_pauli_dble(0.0f,m+1,rs.w+1,rs.w+1);
+            mul_pauli2_dble(0.0f, m, rs.w, rs.w);
 
             deo(piup,pidn,u,r);
          }
@@ -2265,8 +2256,7 @@ void Dwhat_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
       {
          doe(piup,pidn,u,s);
 
-         mul_pauli_dble(0.0f,m,rs.w,rs.w);
-         mul_pauli_dble(0.0f,m+1,rs.w+1,rs.w+1);
+         mul_pauli2_dble(0.0f, m, rs.w, rs.w);
 
          deo(piup,pidn,u,r);
 

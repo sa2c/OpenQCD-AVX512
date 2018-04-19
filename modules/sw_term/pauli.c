@@ -409,7 +409,105 @@ void mul_pauli(float mu,pauli *m,weyl *s,weyl *r)
                          "xmm6", "xmm7");
 }
 
-#if (defined AVX)
+
+#else
+
+static weyl rs;
+
+void mul_pauli(float mu, pauli *m, weyl *s, weyl *r)
+{
+  float const *u;
+
+  u = (*m).u;
+
+  rs.c1.c1.re =
+      u[0] * (*s).c1.c1.re - mu * (*s).c1.c1.im + u[6] * (*s).c1.c2.re -
+      u[7] * (*s).c1.c2.im + u[8] * (*s).c1.c3.re - u[9] * (*s).c1.c3.im +
+      u[10] * (*s).c2.c1.re - u[11] * (*s).c2.c1.im + u[12] * (*s).c2.c2.re -
+      u[13] * (*s).c2.c2.im + u[14] * (*s).c2.c3.re - u[15] * (*s).c2.c3.im;
+
+  rs.c1.c1.im =
+      u[0] * (*s).c1.c1.im + mu * (*s).c1.c1.re + u[6] * (*s).c1.c2.im +
+      u[7] * (*s).c1.c2.re + u[8] * (*s).c1.c3.im + u[9] * (*s).c1.c3.re +
+      u[10] * (*s).c2.c1.im + u[11] * (*s).c2.c1.re + u[12] * (*s).c2.c2.im +
+      u[13] * (*s).c2.c2.re + u[14] * (*s).c2.c3.im + u[15] * (*s).c2.c3.re;
+
+  rs.c1.c2.re =
+      u[6] * (*s).c1.c1.re + u[7] * (*s).c1.c1.im + u[1] * (*s).c1.c2.re -
+      mu * (*s).c1.c2.im + u[16] * (*s).c1.c3.re - u[17] * (*s).c1.c3.im +
+      u[18] * (*s).c2.c1.re - u[19] * (*s).c2.c1.im + u[20] * (*s).c2.c2.re -
+      u[21] * (*s).c2.c2.im + u[22] * (*s).c2.c3.re - u[23] * (*s).c2.c3.im;
+
+  rs.c1.c2.im =
+      u[6] * (*s).c1.c1.im - u[7] * (*s).c1.c1.re + u[1] * (*s).c1.c2.im +
+      mu * (*s).c1.c2.re + u[16] * (*s).c1.c3.im + u[17] * (*s).c1.c3.re +
+      u[18] * (*s).c2.c1.im + u[19] * (*s).c2.c1.re + u[20] * (*s).c2.c2.im +
+      u[21] * (*s).c2.c2.re + u[22] * (*s).c2.c3.im + u[23] * (*s).c2.c3.re;
+
+  rs.c1.c3.re =
+      u[8] * (*s).c1.c1.re + u[9] * (*s).c1.c1.im + u[16] * (*s).c1.c2.re +
+      u[17] * (*s).c1.c2.im + u[2] * (*s).c1.c3.re - mu * (*s).c1.c3.im +
+      u[24] * (*s).c2.c1.re - u[25] * (*s).c2.c1.im + u[26] * (*s).c2.c2.re -
+      u[27] * (*s).c2.c2.im + u[28] * (*s).c2.c3.re - u[29] * (*s).c2.c3.im;
+
+  rs.c1.c3.im =
+      u[8] * (*s).c1.c1.im - u[9] * (*s).c1.c1.re + u[16] * (*s).c1.c2.im -
+      u[17] * (*s).c1.c2.re + u[2] * (*s).c1.c3.im + mu * (*s).c1.c3.re +
+      u[24] * (*s).c2.c1.im + u[25] * (*s).c2.c1.re + u[26] * (*s).c2.c2.im +
+      u[27] * (*s).c2.c2.re + u[28] * (*s).c2.c3.im + u[29] * (*s).c2.c3.re;
+
+  rs.c2.c1.re =
+      u[10] * (*s).c1.c1.re + u[11] * (*s).c1.c1.im + u[18] * (*s).c1.c2.re +
+      u[19] * (*s).c1.c2.im + u[24] * (*s).c1.c3.re + u[25] * (*s).c1.c3.im +
+      u[3] * (*s).c2.c1.re - mu * (*s).c2.c1.im + u[30] * (*s).c2.c2.re -
+      u[31] * (*s).c2.c2.im + u[32] * (*s).c2.c3.re - u[33] * (*s).c2.c3.im;
+
+  rs.c2.c1.im =
+      u[10] * (*s).c1.c1.im - u[11] * (*s).c1.c1.re + u[18] * (*s).c1.c2.im -
+      u[19] * (*s).c1.c2.re + u[24] * (*s).c1.c3.im - u[25] * (*s).c1.c3.re +
+      u[3] * (*s).c2.c1.im + mu * (*s).c2.c1.re + u[30] * (*s).c2.c2.im +
+      u[31] * (*s).c2.c2.re + u[32] * (*s).c2.c3.im + u[33] * (*s).c2.c3.re;
+
+  rs.c2.c2.re =
+      u[12] * (*s).c1.c1.re + u[13] * (*s).c1.c1.im + u[20] * (*s).c1.c2.re +
+      u[21] * (*s).c1.c2.im + u[26] * (*s).c1.c3.re + u[27] * (*s).c1.c3.im +
+      u[30] * (*s).c2.c1.re + u[31] * (*s).c2.c1.im + u[4] * (*s).c2.c2.re -
+      mu * (*s).c2.c2.im + u[34] * (*s).c2.c3.re - u[35] * (*s).c2.c3.im;
+
+  rs.c2.c2.im =
+      u[12] * (*s).c1.c1.im - u[13] * (*s).c1.c1.re + u[20] * (*s).c1.c2.im -
+      u[21] * (*s).c1.c2.re + u[26] * (*s).c1.c3.im - u[27] * (*s).c1.c3.re +
+      u[30] * (*s).c2.c1.im - u[31] * (*s).c2.c1.re + u[4] * (*s).c2.c2.im +
+      mu * (*s).c2.c2.re + u[34] * (*s).c2.c3.im + u[35] * (*s).c2.c3.re;
+
+  rs.c2.c3.re =
+      u[14] * (*s).c1.c1.re + u[15] * (*s).c1.c1.im + u[22] * (*s).c1.c2.re +
+      u[23] * (*s).c1.c2.im + u[28] * (*s).c1.c3.re + u[29] * (*s).c1.c3.im +
+      u[32] * (*s).c2.c1.re + u[33] * (*s).c2.c1.im + u[34] * (*s).c2.c2.re +
+      u[35] * (*s).c2.c2.im + u[5] * (*s).c2.c3.re - mu * (*s).c2.c3.im;
+
+  rs.c2.c3.im =
+      u[14] * (*s).c1.c1.im - u[15] * (*s).c1.c1.re + u[22] * (*s).c1.c2.im -
+      u[23] * (*s).c1.c2.re + u[28] * (*s).c1.c3.im - u[29] * (*s).c1.c3.re +
+      u[32] * (*s).c2.c1.im - u[33] * (*s).c2.c1.re + u[34] * (*s).c2.c2.im -
+      u[35] * (*s).c2.c2.re + u[5] * (*s).c2.c3.im + mu * (*s).c2.c3.re;
+
+  (*r) = rs;
+}
+
+#endif
+
+
+#ifdef AVX512
+
+void mul_pauli2_avx512(float mu, pauli *m, spinor *source, spinor *res );
+void mul_pauli2(float mu, pauli *m, spinor *source, spinor *res )
+{
+  mul_pauli2_avx512( mu, m, source, res );
+}
+
+
+#elif (defined AVX)
 #include "avx.h"
 
 void mul_pauli2(float mu,pauli *m,spinor *s,spinor *r)
@@ -939,129 +1037,6 @@ void mul_pauli2(float mu,pauli *m,spinor *s,spinor *r)
 }
 
 #else
-
-void mul_pauli2(float mu,pauli *m,spinor *s,spinor *r)
-{
-   spin_t *ps,*pr;
-
-   ps=(spin_t*)(s);
-   pr=(spin_t*)(r);
-
-   mul_pauli(mu,m,(*ps).w,(*pr).w);
-   mul_pauli(-mu,m+1,(*ps).w+1,(*pr).w+1);
-}
-
-#endif
-#else
-
-static weyl rs;
-
-
-void mul_pauli(float mu,pauli *m,weyl *s,weyl *r)
-{
-   float *u;
-
-   u=(*m).u;
-
-   rs.c1.c1.re=
-      u[ 0]*(*s).c1.c1.re-   mu*(*s).c1.c1.im+
-      u[ 6]*(*s).c1.c2.re-u[ 7]*(*s).c1.c2.im+
-      u[ 8]*(*s).c1.c3.re-u[ 9]*(*s).c1.c3.im+
-      u[10]*(*s).c2.c1.re-u[11]*(*s).c2.c1.im+
-      u[12]*(*s).c2.c2.re-u[13]*(*s).c2.c2.im+
-      u[14]*(*s).c2.c3.re-u[15]*(*s).c2.c3.im;
-
-   rs.c1.c1.im=
-      u[ 0]*(*s).c1.c1.im+   mu*(*s).c1.c1.re+
-      u[ 6]*(*s).c1.c2.im+u[ 7]*(*s).c1.c2.re+
-      u[ 8]*(*s).c1.c3.im+u[ 9]*(*s).c1.c3.re+
-      u[10]*(*s).c2.c1.im+u[11]*(*s).c2.c1.re+
-      u[12]*(*s).c2.c2.im+u[13]*(*s).c2.c2.re+
-      u[14]*(*s).c2.c3.im+u[15]*(*s).c2.c3.re;
-
-   rs.c1.c2.re=
-      u[ 6]*(*s).c1.c1.re+u[ 7]*(*s).c1.c1.im+
-      u[ 1]*(*s).c1.c2.re-   mu*(*s).c1.c2.im+
-      u[16]*(*s).c1.c3.re-u[17]*(*s).c1.c3.im+
-      u[18]*(*s).c2.c1.re-u[19]*(*s).c2.c1.im+
-      u[20]*(*s).c2.c2.re-u[21]*(*s).c2.c2.im+
-      u[22]*(*s).c2.c3.re-u[23]*(*s).c2.c3.im;
-
-   rs.c1.c2.im=
-      u[ 6]*(*s).c1.c1.im-u[ 7]*(*s).c1.c1.re+
-      u[ 1]*(*s).c1.c2.im+   mu*(*s).c1.c2.re+
-      u[16]*(*s).c1.c3.im+u[17]*(*s).c1.c3.re+
-      u[18]*(*s).c2.c1.im+u[19]*(*s).c2.c1.re+
-      u[20]*(*s).c2.c2.im+u[21]*(*s).c2.c2.re+
-      u[22]*(*s).c2.c3.im+u[23]*(*s).c2.c3.re;
-
-   rs.c1.c3.re=
-      u[ 8]*(*s).c1.c1.re+u[ 9]*(*s).c1.c1.im+
-      u[16]*(*s).c1.c2.re+u[17]*(*s).c1.c2.im+
-      u[ 2]*(*s).c1.c3.re-   mu*(*s).c1.c3.im+
-      u[24]*(*s).c2.c1.re-u[25]*(*s).c2.c1.im+
-      u[26]*(*s).c2.c2.re-u[27]*(*s).c2.c2.im+
-      u[28]*(*s).c2.c3.re-u[29]*(*s).c2.c3.im;
-
-   rs.c1.c3.im=
-      u[ 8]*(*s).c1.c1.im-u[ 9]*(*s).c1.c1.re+
-      u[16]*(*s).c1.c2.im-u[17]*(*s).c1.c2.re+
-      u[ 2]*(*s).c1.c3.im+   mu*(*s).c1.c3.re+
-      u[24]*(*s).c2.c1.im+u[25]*(*s).c2.c1.re+
-      u[26]*(*s).c2.c2.im+u[27]*(*s).c2.c2.re+
-      u[28]*(*s).c2.c3.im+u[29]*(*s).c2.c3.re;
-
-   rs.c2.c1.re=
-      u[10]*(*s).c1.c1.re+u[11]*(*s).c1.c1.im+
-      u[18]*(*s).c1.c2.re+u[19]*(*s).c1.c2.im+
-      u[24]*(*s).c1.c3.re+u[25]*(*s).c1.c3.im+
-      u[ 3]*(*s).c2.c1.re-   mu*(*s).c2.c1.im+
-      u[30]*(*s).c2.c2.re-u[31]*(*s).c2.c2.im+
-      u[32]*(*s).c2.c3.re-u[33]*(*s).c2.c3.im;
-
-   rs.c2.c1.im=
-      u[10]*(*s).c1.c1.im-u[11]*(*s).c1.c1.re+
-      u[18]*(*s).c1.c2.im-u[19]*(*s).c1.c2.re+
-      u[24]*(*s).c1.c3.im-u[25]*(*s).c1.c3.re+
-      u[ 3]*(*s).c2.c1.im+   mu*(*s).c2.c1.re+
-      u[30]*(*s).c2.c2.im+u[31]*(*s).c2.c2.re+
-      u[32]*(*s).c2.c3.im+u[33]*(*s).c2.c3.re;
-
-   rs.c2.c2.re=
-      u[12]*(*s).c1.c1.re+u[13]*(*s).c1.c1.im+
-      u[20]*(*s).c1.c2.re+u[21]*(*s).c1.c2.im+
-      u[26]*(*s).c1.c3.re+u[27]*(*s).c1.c3.im+
-      u[30]*(*s).c2.c1.re+u[31]*(*s).c2.c1.im+
-      u[ 4]*(*s).c2.c2.re-   mu*(*s).c2.c2.im+
-      u[34]*(*s).c2.c3.re-u[35]*(*s).c2.c3.im;
-
-   rs.c2.c2.im=
-      u[12]*(*s).c1.c1.im-u[13]*(*s).c1.c1.re+
-      u[20]*(*s).c1.c2.im-u[21]*(*s).c1.c2.re+
-      u[26]*(*s).c1.c3.im-u[27]*(*s).c1.c3.re+
-      u[30]*(*s).c2.c1.im-u[31]*(*s).c2.c1.re+
-      u[ 4]*(*s).c2.c2.im+   mu*(*s).c2.c2.re+
-      u[34]*(*s).c2.c3.im+u[35]*(*s).c2.c3.re;
-
-   rs.c2.c3.re=
-      u[14]*(*s).c1.c1.re+u[15]*(*s).c1.c1.im+
-      u[22]*(*s).c1.c2.re+u[23]*(*s).c1.c2.im+
-      u[28]*(*s).c1.c3.re+u[29]*(*s).c1.c3.im+
-      u[32]*(*s).c2.c1.re+u[33]*(*s).c2.c1.im+
-      u[34]*(*s).c2.c2.re+u[35]*(*s).c2.c2.im+
-      u[ 5]*(*s).c2.c3.re-   mu*(*s).c2.c3.im;
-
-   rs.c2.c3.im=
-      u[14]*(*s).c1.c1.im-u[15]*(*s).c1.c1.re+
-      u[22]*(*s).c1.c2.im-u[23]*(*s).c1.c2.re+
-      u[28]*(*s).c1.c3.im-u[29]*(*s).c1.c3.re+
-      u[32]*(*s).c2.c1.im-u[33]*(*s).c2.c1.re+
-      u[34]*(*s).c2.c2.im-u[35]*(*s).c2.c2.re+
-      u[ 5]*(*s).c2.c3.im+   mu*(*s).c2.c3.re;
-
-   (*r)=rs;
-}
-
 
 void mul_pauli2(float mu,pauli *m,spinor *s,spinor *r)
 {

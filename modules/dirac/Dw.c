@@ -122,7 +122,27 @@ static const spinor s0={{{0.0f,0.0f},{0.0f,0.0f},{0.0f,0.0f}},
                         {{0.0f,0.0f},{0.0f,0.0f},{0.0f,0.0f}}};
 static spin_t rs ALIGNED32;
 
-#if (defined AVX)
+
+#if ( defined AVX512 )
+
+#include "avx512.h"
+#include "sse.h"
+
+void doe_avx512(int *piup, int *pidn, su3 *u, spinor *pk, float coe, spin_t *rs);
+static void doe(int *piup, int *pidn, su3 *u, spinor *pk)
+{
+  doe_avx512( piup, pidn, u, pk, coe, &rs );
+}
+
+void deo_avx512(int *piup, int *pidn, su3 *u, spinor *pl, float ceo, spin_t *rs);
+static void deo(int *piup, int *pidn, su3 *u, spinor *pl)
+{
+  deo_avx512( piup, pidn, u, pl, ceo, &rs );
+}
+
+
+
+#elif ( defined AVX )
 #include "avx.h"
 
 #define _load_cst(c) \
