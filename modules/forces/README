@@ -1,0 +1,229 @@
+
+********************************************************************************
+
+                      MD force and action programs
+
+********************************************************************************
+
+
+Files
+-----
+
+force0.c       Action of the double-precision gauge field and associated
+               force.
+
+force1.c       Twisted-mass pseudo-fermion action and force.
+
+force2.c       Hasenbusch twisted_mass pseudo-fermion action and force.
+
+force3.c       Rational function forces.
+
+force4.c       Twisted mass pseudo-fermion action and force with even-odd
+               preconditioning.
+
+force5.c       Hasenbusch twisted mass pseudo-fermion action and force
+               with even-odd precconditioning.
+
+frcfcts.c      Generic functions used for the force calculation.
+
+genfrc.c       Calculation of quark forces.
+
+tmcg.c         CG solver for the normal Wilson-Dirac equation with a
+               twisted-mass term.
+
+tmcgm.c        Multi-shift CG solver for the normal even-odd preconditioned
+               Wilson-Dirac equation with a twisted mass term.
+
+xtensor.c      Spin parts of the quark force.
+
+
+Include file
+------------
+
+The file forces.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void plaq_frc(void)
+  Computes the force deriving from the Wilson plaquette action,
+  omitting the prefactor 1/g0^2, and assigns the result to the MD
+  force field. In the case of open, SF or open-SF boundary conditions,
+  the boundary improvement coefficients are set to their tree-level
+  value independently of the values stored in the parameter data base.
+
+void force0(double c)
+  Computes the force deriving from the gauge action, including the
+  prefactor 1/g0^2, multiplies the calculated force by c and assigns
+  the result to the MD force field. The coupling g0 and the other
+  parameters of the gauge action are retrieved from the parameter
+  data base.
+
+double action0(int icom)
+  Computes the local part of the gauge action including the prefactor
+  1/g0^2. The coupling g0 and the other parameters of the action are
+  retrieved from the parameter data base. The program returns the sum
+  of the local parts of the action over all MPI processes if icom=1
+  and otherwise just the local part.
+
+double setpf1(double mu,int ipf,int icom)
+  Generates a pseudo-fermion field phi with probability proportional
+  to exp(-Spf) and returns the action Spf (see the notes).
+
+void force1(double mu,int ipf,int isp,int icr,double c,int *status)
+  Computes the force deriving from the action Spf (see the notes).
+  The calculated force is multiplied by c and added to the molecular-
+  dynamics force field.
+
+double action1(double mu,int ipf,int isp,int icom,int *status)
+  Returns the action Spf (see the notes).
+
+double setpf2(double mu0,double mu1,int ipf,int isp,int icom,
+              int *status)
+  Generates a pseudo-fermion field phi with probability proportional
+  to exp(-Spf) and returns the action Spf-(phi,phi) (see the notes).
+
+void force2(double mu0,int mu1,int ipf,int isp,int icr,double c,
+            int *status)
+  Computes the force deriving from the action Spf (see the notes).
+  The calculated force is multiplied by c and added to the molecular-
+  dynamics force field.
+
+double action2(double mu0,double mu1,int ipf,int isp,int icom,
+               int *status)
+  Returns the action Spf-(phi,phi) (see the notes).
+
+double setpf3(int *irat,int ipf,int isw,int isp,int icom,int *status)
+  Generates a pseudo-fermion field phi with probability proportional
+  to exp(-Spf) and returns the action Spf+Sdet-(phi,phi) if isw=1 or
+  Spf-(phi,phi) if isw!=1 (see the notes).
+
+void force3(int *irat,int ipf,int isw,int isp,double c,int *status)
+  Computes the force deriving from the action Spf+Sdet if isw=1 or
+  Spf if isw!=1 (see the notes). The calculated force is multiplied
+  by c and added to the molecular-dynamics force field.
+
+double action3(int *irat,int ipf,int isw,int isp,int icom,int *status)
+  Returns the action Spf+Sdet-(phi,phi) if isw=1 or Spf-(phi,phi) if
+  isw!=1 (see the notes).
+
+double setpf4(double mu,int ipf,int isw,int icom)
+  Generates a pseudo-fermion field phi with probability proportional
+  to exp(-Spf) and returns the action Spf+Sdet if isw=1 or Spf if
+  isw!=1 (see the notes).
+
+void force4(double mu,int ipf,int isw,int isp,int icr,double c,
+            int *status)
+  Computes the force deriving from the action Spf+Sdet if isw=1 or
+  Spf if isw!=1 (see the notes). The calculated force is multiplied
+  by c and added to the molecular-dynamics force field.
+
+double action4(double mu,int ipf,int isw,int isp,int icom,
+               int *status)
+  Returns the action Spf+Sdet if isw=1 or Spf if isw!=1 (see the
+  notes).
+
+double setpf5(double mu0,double mu1,int ipf,int isp,int icom,
+              int *status)
+  Generates a pseudo-fermion field phi with probability proportional
+  to exp(-Spf) and returns the action Spf-(phi,phi) (see the notes).
+
+void force5(double mu0,int mu1,int ipf,int isp,int icr,double c,
+            int *status)
+  Computes the force deriving from the action Spf (see the notes).
+  The calculated force is multiplied by c and added to the molecular-
+  dynamics force field.
+
+double action5(double mu0,double mu1,int ipf,int isp,int icom,
+               int *status)
+  Returns the action Spf-(phi,phi) (see the notes).
+
+void det2xt(pauli_dble *m,u3_alg_dble *X)
+  Computes the matrices X[0],..,X[5] associated to the SW term on a
+  given lattice point (see the notes). The program expects that m[0]
+  and m[1] contain the hermitian part of the inverse of the SW term
+  at the chosen point.
+
+void prod2xt(spinor_dble *r,spinor_dble *s,u3_alg_dble *X)
+  Computes the matrices X[0],..,X[5] associated to a pair of spinors
+  r and s at a given lattice point (see the notes).
+
+The following is an array of functions indexed by the direction mu=0,..,3:
+
+void (*prod2xv[])(spinor_dble *rx,spinor_dble *ry,
+                   spinor_dble *sx,spinor_dble *sy,su3_dble *u)
+  Computes the complex 3x3 matrix
+
+    u=tr{gamma_5*(1-gamma_mu)*[(sy x rx^dag)+(ry x sx^dag)]}
+
+  where ..x.. denotes the tensor product in spinor space and the trace
+  is taken over the Dirac indices.
+
+void sw_frc(double c)
+  Computes the SW part of the quark force, using the current value
+  of the X tensor field (see the notes). The calculated force is then
+  multiplied by c and added to the MD force field.
+
+void hop_frc(double c)
+  Computes the hopping part of the quark force, using the current
+  value of the X vector field (see the notes). The calculated force
+  is then multiplied by c and added to the MD force field.
+
+double tmcg(int nmx,double res,double mu,
+            spinor_dble *eta,spinor_dble *psi,int *status)
+  Obtains an approximate solution psi of the normal Wilson-Dirac equation
+  for given source eta using the (unpreconditioned) CG algorithm. See the
+  notes for the explanation of the parameters of the program.
+
+double tmcgeo(int nmx,double res,double mu,
+              spinor_dble *eta,spinor_dble *psi,int *status)
+  Obtains an approximate solution psi of the normal even-odd
+  preconditioned Wilson-Dirac equation for given source eta (see
+  the notes).
+
+void tmcgm(int nmx,double *res,int nmu,double *mu,
+           spinor_dble *eta,spinor_dble **psi,int *status)
+  Obtains approximate solutions psi[0],..,psi[nmu-1] of the normal
+  even-odd preconditioned Wilson-Dirac equation for given source eta
+  and nmu values of the twisted-mass parameter mu. See the notes for
+  the explanation of the parameters of the program.
+
+u3_alg_dble **xtensor(void)
+  Returns the pointers xt[0],..,xt[5] to the X tensor field components
+  with Lorentz indices (0,1),(0,2),(0,3),(2,3),(3,1),(1,2). The arrays
+  are automatically allocated and initialized to zero if they are not
+  already allocated.
+
+void set_xt2zero(void)
+  Sets the X tensor field to zero.
+
+int add_det2xt(double c,ptset_t set)
+  Computes the spin part of the SW force deriving from the action
+  -Tr{ln(D)}, where D=D_ee,D_oo,D_ee+D_oo or 1 when set=EVEN_PTS,
+  ODD_PTS,ALL_PTS or NO_PTS (see the notes). The calculated matrices
+  are then multiplied by c and are added to the X tensor field. When
+  needed, the program recomputes and inverts the SW term. The program
+  returns 0 if all inversions were safe and a non-zero value otherwise.
+
+void add_prod2xt(double c,spinor_dble *r,spinor_dble *s)
+  Computes the spin part of the SW force deriving from the "action"
+  -2*Re(r,gamma_5*Dw*s), where Dw denotes the lattice Dirac operator
+  (see the notes). The calculated matrices are then multiplied by c
+  and are added to the X tensor field.
+
+su3_dble *xvector(void)
+  Returns the pointer xv to the X vector field. The components of
+  field are stored in memory in the same order as the link variables.
+  The array automatically allocated and initialized to zero if it is
+  not already allocated.
+
+void set_xv2zero(void)
+  Sets the X vector field to zero.
+
+void add_prod2xv(double c,spinor_dble *r,spinor_dble *s)
+  Computes the spin part of the force deriving from the hopping terms
+  in the "action" -2*Re(r,gamma_5*Dw*s), where Dw denotes the lattice
+  Dirac operator (see the notes). The calculated matrices are then
+  multiplied by c and are added to the X vector field.

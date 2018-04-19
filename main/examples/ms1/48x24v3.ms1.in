@@ -1,0 +1,73 @@
+
+################################################################################
+#
+# Two-flavour QCD with SF boundary conditions, twisted-mass reweighting of
+# the second kind, even-odd preconditioning and no decomposition of the
+# reweighting factor.
+#
+################################################################################
+
+[Run name]
+name         48x24v3
+
+[Directories]
+log_dir      /data/openQCD/ms1/log
+dat_dir      /data/openQCD/ms1/dat
+loc_dir      /ndata/openQCD/cnfg
+cnfg_dir     /data/openQCD/cnfg
+
+[Configurations]
+first        126
+last         225
+step         1
+nrw          1
+
+[Random number generator]
+level        0
+seed         887056
+
+[Lattice parameters]
+kappa        0.13635
+csw          1.90952
+
+[Boundary conditions]
+type         1
+phi          0.5 -0.25
+phi'         0.0 0.0
+cF           1.0
+theta        0.5 0.5 0.5
+
+[Reweighting factor 0]
+rwfact       RWTM2_EO
+im0          0
+mu           0.0045
+isp          0
+nsrc         24
+
+[Solver 0]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          128
+res          1.0e-11
+
+[SAP]
+bs           4 6 6 4
+
+[Deflation subspace]
+bs           4 6 6 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.13635
+mu           0.001
+ninv         10
+nmr          4
+ncy          4
+
+[Deflation projection]
+nkv          16
+nmx          128
+res          1.0e-2

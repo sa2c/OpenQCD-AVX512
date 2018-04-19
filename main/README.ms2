@@ -1,0 +1,141 @@
+
+Main program ms2
+
+SYNTAX
+
+ms2 -i <filename> [-noexp]
+
+
+DESCRIPTION
+
+This program reads gauge field configurations from disk and estimates the
+spectral range [ra,rb] of the even-odd preconditioned hermitian Dirac operator
+(Dwhat^dagger*Dwhat)^(1/2) using the power method. A summary of results is
+printed to the log file together with a table of suggested parameters of the
+Zolotarev rational approximation for the operator (Dwhat^dagger*Dwhat)^(-1/2).
+
+
+COMMAND-LINE OPTIONS
+
+The program has only few options since most of the parameters are passed
+through an input file. The options are
+
+-i <filename>    Specifies the name of the input file. The name can be
+                 a fully qualified name or be specified relative to the
+                 working directory.
+
+-noexp           Field configurations are normally read in exported
+                 file format from the specified configuration directory.
+                 If this option is set, the configurations are instead
+                 expected in the imported file format on the local disks.
+
+
+INPUT PARAMETERS
+
+The lattice size and the process grid must be defined in the file global.h
+(see README.global). All other parameters are read from the input file. An
+example of a valid input file is ms2.in in this directory. The parameter
+values specified in this file are:
+
+[Run name]
+name         Snoopy137             # Run name = configuration base name
+
+[Directories]
+log_dir      ../data/ms2/log       # Log file directory
+loc_dir      /ndata/qcd1/cnfg      # Local configuration directory
+cnfg_dir     /data/qcd1/cnfg       # Exported configuration directory
+
+[Configurations]
+first        1                     # No of the first configuration to consider
+last         4                     # No of the last configuration
+step         1                     # Configuration separation (last-first must
+
+[Dirac operator]
+kappa        0.1300                # Hopping parameter
+csw          1.234                 # Coefficient of the SW term
+
+[Boundary conditions]
+type         2                     # Type of boundary condition (0: open,
+                                   # 1: SF, 2: open-SF, 3: periodic)
+phi          0.12 -0.56            # Boundary values of the gauge field at
+                                   # time 0
+phi'         0.92 0.76             # Boundary values of the gauge field at
+                                   # time NPROC0*L0
+cF           0.95                  # Fermion action improvement coefficient
+                                   # at time 0
+cF'          0.90                  # Fermion action improvement coefficient
+                                   # at time NPROC0*L0
+theta        0.5 1.0 -0.5          # Angles specifying the phase-periodic bc
+                                   # of the quark fields in space
+
+[Power method]
+np_ra        20                    # Number of power iterations to be
+                                   # applied when estimating ra
+np_rb        100                   # Number of power iterations to be
+                                   # applied when estimating rb
+
+Then follows a description of the solver for the Dirac equation to be used in
+the course of the inverse power iterations (see doc/parms.pdf). The supported
+solvers are CGNE, SAP_GCR and DFL_SAP_GCR.
+
+Superfluous sections and parameters may be deleted or commented out. If
+present they are not read by the program and the specified values (if any)
+have no effect on the run. The solver index must be set to 0.
+
+
+FILES
+
+The program searches for exported field configurations
+
+  <run name>n<int>
+
+in the directory cnfg_dir, where <int> is the configuration number.
+Imported configurations
+
+  <run name>n<int>_0       (on process 0)
+  <run name>n<int>_1       (on process 1)
+  <run name>n<int>_2       (on process 2)
+        ...                     ...
+
+are searched in the directory loc_dir.
+
+The program prints the results of the computations to the files
+
+  <run name>.ms2.log       Log file
+  <run name>.ms2.log~      Backup log file
+
+in the directory log_dir. The backup file is updated each time a configuration
+is fully processed.
+
+The directory log_dir, as well as the directory cnfg_dir if the -noexp option
+is not set, must be accessible from process 0. If the -noexp option is set,
+the directory loc_dir must be accessible from all processes.
+
+
+SAFETY MEASURES AND ERROR REPORTING
+
+A number of safety measures have been implemented:
+
+- It is not possible to overwrite an existing log file. The file
+  must first be deleted or renamed if a run is to be repeated.
+
+- The accessibility of the various directories and the compatibility
+  of the chosen parameters is checked at the beginning of the program.
+
+Any attempt to force illegal operations leads to an abnormal termination of
+the program, with an informative message being written either to the log file
+or the file STARTUP_ERROR in the program directory (if the error occurs before
+the log file is opened).
+
+It should be noted that filenames may not be longer than 127 characters. The
+program checks at an early stage whether this is the case or not. Longer
+filenames can be accommodated by setting the macro NAME_SIZE in the header
+file global.h to a larger value.
+
+
+EARLY TERMINATION
+
+The program can be stopped gracefully by touching a file in the log directory
+with the same name as the log file but with extension .end instead of .log. It
+may take a while until the program exits, because it will only do so when the
+current field configuration is fully processed.

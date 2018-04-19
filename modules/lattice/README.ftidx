@@ -1,0 +1,77 @@
+
+********************************************************************************
+
+                     Layout of the field tensor array
+
+********************************************************************************
+
+The (clover) gauge field tensor is an antisymmetric tensor field with values
+in the Lie algebra of U(3) (see tcharge/ftensor.c). It is completely specified
+by its values on the points of the local lattice. Moreover, since the tensor
+is antisymmetric in its Lorentz indices (mu,nu), it suffices to quote the 6
+components with the indices
+
+  (mu,nu)={(0,1),(0,2),(0,3),(2,3),(3,1),(1,2)} 
+
+which may be referred to as the electric and magnetic components of the field.
+
+
+Field array
+-----------
+
+The field tensor is stored in the double array
+
+  ft[n][ix]      n=0,..,5,  ix=0,..,VOLUME+nft[n][0]+nft[n][1]
+
+of u3_alg_dble structures, where n labels the (mu,nu)-index combinations
+listed above. In particular, the components of the field tensor at a point x
+in the local lattice are ft[n][ix], where 0<=ix<VOLUME is the index of x.
+
+For a given (mu,nu)-plane with label n, the elements of the array ft[n][ix]
+at ix>=VOLUME are reserved for copies of the field tensor on the boundaries
+of the local lattice in directions +mu and +nu:
+
+
+           Cross section of the lattice in the (mu,nu)-plane
+
+    - - - - - - - - - - - - +                   
+    * * * * * * * * * * * * +                   *:  local lattice
+    * * * * * * * * * * * * +                   
+    * * * * * * * * * * * * +                   +:  mu-face
+    * * * * * * * * * * * * +    nu             
+    * * * * * * * * * * * * +     ^             -:  nu-face
+    * * * * * * * * * * * * +     |
+    * * * * * * * * * * * * +     ---> mu
+
+
+The first of them, the "mu-face", includes the points at the (+mu,+nu)
+corner of the local lattice. The numbers of points in these faces are
+denoted by nft[n][0] an nft[n][1].
+
+
+Contents of the structures of type ftidx_t
+------------------------------------------
+
+A structure of type ftidx_t contains index data that refer to some
+(mu,nu)-plane. The elements of the structure are
+
+  nft[0]:     Number of points in the mu-face.
+
+  nft[1]:     Number of points in the nu-face.
+
+  ift[0][n]:  Offsets of the field components in the local lattice
+              and the nu-face that correspond to the field components
+              in the mu-face on the MPI process in direction -mu 
+              (n=0,..,nft[0]-1).
+
+  ift[1][n]:  Offsets of the field components in the local lattice 
+              that correspond to the field components in the nu-face
+              on the MPI process in direction -nu (n=0,..,nft[1]-1).
+
+Using these index arrays, the field components on the mu- and nu-faces are
+easily extracted from the local gauge fields on the neighbouring MPI
+processes. 
+
+Note that copying of the field tensor must be performed in a particular order
+to ensure that the components at the (+mu,+nu)-corner of the local lattice are
+correctly copied.

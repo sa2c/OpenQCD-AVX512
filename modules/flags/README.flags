@@ -1,0 +1,155 @@
+
+********************************************************************************
+
+                        Flags data base explained
+
+********************************************************************************
+
+
+Summary
+-------
+
+The tasks carried out in a main program depend on the relevant preparatory
+steps being taken in the proper order. The data base that is maintained by the
+programs in this module enables the programmer to to check whether the field
+arrays are in the proper condition for a specific task using the query_flags()
+function.
+
+Internally this works by assigning a unique tag to every new gauge field
+configuration. Other fields that depend on the gauge fields then inherit the
+tag when they are calculated. Clearly the data base must be informed about any
+steps taken. The function set_flags() does that for the case when the global
+fields are concerned. The current lists of events and queries are defined in
+the file flags.h and should be self-explanatory.
+
+In general the philosophy underlying the data base is that the flags reflect
+the current contents of the field arrays that are monitored. To ensure the
+consistency of the data base, any program that changes the fields must include
+a corresponding set_flags() statement. There should be no exception to this
+rule.
+
+
+Full-lattice flags
+------------------
+
+The flags related to the global fields are stored in a structure
+
+struct
+{
+   int u,ud;
+   int udbuf,bstap,fts;
+   int sw[3],swd[3];
+   int aw,awh;
+   int phase;
+} lat
+
+with the following elements:
+
+lat.u                       Tag of the current single-precision gauge field.
+
+lat.ud                      Tag of the current double-precision gauge field.
+
+lat.udbuf                   Tag of the double-precision field when its values
+                            at the boundaries of the local lattice were last
+                            copied from the neighbouring MPI processes.
+
+lat.bstap                   Tag of the double-precision gauge field when the
+                            boundary staples were last calculated.
+
+lat.fts                     Tag of the double-precision gauge field when the
+                            gauge-field tensor was last calculated.
+
+lat.sw[0]                   Tag of the gauge field from which the current
+                            single-precision SW-term was calculated.
+
+lat.sw[1]                   Indicates whether the single-precision SW-term on
+                            the even sites is inverted (lat.sw[1]=1) or not
+                            (lat.sw[1]=0).
+
+lat.sw[2]                   Indicates whether the single-precision SW-term on
+                            the odd sites is inverted (lat.sw[2]=1) or not
+                            (lat.sw[2]=0).
+
+lat.swd[0]                  Tag of the gauge field from which the current
+                            double-precision SW-term was calculated.
+
+lat.swd[1]                  Indicates whether the double-precision SW-term on
+                            the even sites is inverted (lat.swd[1]=1) or not
+                            (lat.swd[1]=0).
+
+lat.swd[2]                  Indicates whether the double-precision SW-term on
+                            the odd sites is inverted (lat.swd[2]=1) or not
+                            (lat.swd[2]=0).
+
+lat.aw                      Tag of the double-precision gauge field when the
+                            little Dirac operator was last calculated.
+
+lat.awh                     Tag of the double-precision gauge field when the
+                            even-odd preconditioned little Dirac operator was
+                            last calculated.
+
+lat.phase                   Indicates whether the double-precision gauge field
+                            is phase shifted (lat.phase=1) or not (lat.phase=0)
+                            [cf. set_ud_phase() in uflds/uflds.c].
+
+
+Block-grid flags
+----------------
+
+The data base monitors the fields on the block grids too. Flags are currently
+set for two block grids (SAP_BLOCKS and DFL_BLOCKS), but further grids could
+easily be incorporated.
+
+A complication arises from the fact that blocks may share some of the fields.
+The data base only keeps track of the fields that are *not* shared. Querying
+the status of a shared field is an error recorded by the error_loc() function.
+
+For each grid, the associated flags are contained in a structure
+
+typedef struct
+{
+   int shf;
+   int u,ud;
+   int sw[3],swd[3];
+} gf
+
+with the following elements:
+
+gf.shf                      Share flags of the blocks on the block grid.
+                            The bits b1,b2 (counting from the lowest) in
+                            this number are
+
+                            b1=1:  b.u and bb.u are shared,
+                            b2=1:  b.ud and bb.ud are shared.
+
+			    All other bits are set to zero.
+
+gf.u                        Tag of the single-precision gauge field on the
+                            blocks (=0 if the field is shared).
+
+gf.ud                       Tag of the double-precision gauge field on the
+                            blocks (=0 if the field is shared).
+
+gf.sw[0]                    Tag of the gauge field at which the current
+                            single-precision SW term on the blocks was
+                            calculated (=0 if the gauge field is shared).
+
+gf.sw[1]                    Indicates whether the single-precision SW term
+                            on the even sites of the block is inverted
+                            (gf.sw[1]=1) or not (gf.sw[1]=0).
+
+gf.sw[2]                    Indicates whether the single-precision SW term
+                            on the odd sites of the block is inverted
+                            (gf.sw[2]=1) or not (gf.sw[2]=0).
+
+gf.swd[0]                   Tag of the gauge field from which the current
+                            double-precision SW term on the block was
+                            calculated (=0 if the gauge field is shared).
+
+gf.swd[1]                   Indicates whether the double-precision SW term
+                            on the even sites on the block is inverted
+                            (gf.swd[1]=1) or not (gf.swd[1]=0)
+
+gf.swd[2]                   Indicates whether the double-precision SW term
+                            on the odd sites of the block is inverted
+                            (gf.swd[2]=1) or not (gf.swd[2]=0)

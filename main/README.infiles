@@ -1,0 +1,26 @@
+
+INPUT PARAMETER FILES
+
+The *.in files contain a list of parameter values that are read by the main
+programs in this directory. All these files are text files that can be edited
+in any convenient way. The parameters are grouped into sections headed by
+lines of the form
+
+  [section title]
+
+Each section consists of a set of lines 
+
+  tag value1 value2 ...
+
+where tag is an alpha-numeric word and the values listed after the tag can be
+decimal integers, floating-point values (without f or lf) or character strings
+such as a directory name. 
+
+The sections can appear in any order, and the order of the parameter lines
+within a section does not matter. Different data items on a line must be
+separated by one or more blank or tab characters. The maximal number of
+characters on each line may not be larger than NAME_SIZE-1 (the value of
+NAME_SIZE is set in include/global.h and is guaranteed to be at least 128).
+
+Superfluous sections and parameter lines are ignored. So are blank lines and
+comments (text on the right of the character #).

@@ -1,0 +1,179 @@
+
+********************************************************************************
+
+                          Little Dirac Operator
+
+********************************************************************************
+
+
+Files
+-----
+
+Aw_gen.c            Generic programs needed for the computation of the 
+                    little Dirac operator
+
+Aw_com.c            Communication program needed in the computation of
+                    the little Dirac operator
+
+Aw_ops.c            Computation of the little Dirac operator
+
+Aw.c                Application of the single_precision little Wilson-Dirac 
+                    operator Aw
+
+Aw_dble.c           Application of the double-precision little Wilson-Dirac 
+                    operator Aw
+
+ltl_modes.c         Computation of the little modes
+
+
+Include file
+------------
+
+The file little.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above. 
+
+
+List of functions
+-----------------
+
+void gather_ud(int vol,int *imb,su3_dble *ud,su3_dble *vd)
+  Assigns the 3x3 matrices ud[imb[i]] to vd[i] (i=0,..,vol-1).
+
+void gather_sd(int vol,int *imb,spinor_dble *sd,spinor_dble *rd)
+  Assigns the spinors sd[imb[i]] to rd[i] (i=0,..,vol-1).
+  
+void apply_u2sd(int vol,int *imb,su3_dble *ud,spinor_dble *sd,
+                spinor_dble *rd)
+  Multiplies the spinors sd[imb[i]] by the 3x3 matrices ud[i] and 
+  assigns the result to rd[i] (i=0,..,vol-1). 
+
+void apply_udag2sd(int vol,int *imb,su3_dble *ud,spinor_dble *sd,
+                   spinor_dble *rd)
+  Multiplies the spinors sd[imb[i]] by the adjoint of the 3x3 matrices
+  ud[i] and assigns the result to rd[i] (i=0,..,vol-1).
+
+The following is an array of functions indexed by the direction mu=0,..,3:
+
+void (*spinor_prod_gamma[])(int vol,spinor_dble *sd,spinor_dble *rd,
+                            complex_dble *sp)
+   Computes the scalar products (sd,rd) and (sd,gamma_mu*rd), where
+   gamma_mu denotes the Dirac matrix with index mu and the spinor
+   fields are assumed to have vol elements. On exit the calculated
+   products are assigned to sp[0] and sp[1], respectively.
+
+b2b_flds_t *b2b_flds(int n,int mu)
+  Extracts the spinor fields on the interior boundaries of the n'th
+  block of the DFL_BLOCKS grid and its neighbouring block in direction
+  mu. The spinors on the odd sites are multiplied by the link variables
+  in direction mu and -mu respectively. If the two blocks touch the
+  boundary of the local lattice, the fields extracted from the even
+  sites are copied to the neighbouring process. The program returns a
+  structure containing the extracted field arrays (see README.Aw_com
+  for detailed explanations).
+
+void cpAoe_ext_bnd(void)
+  Copies the hopping terms Aoe and Aeo of the double-precision little
+  Dirac operator on the odd exterior boundary points of the local block 
+  lattice to the neighbouring processes and *adds* them to the hopping
+  terms on the matching blocks on the target lattices.
+
+void cpAee_int_bnd(void)
+  Copies the even-even terms Aee of the double-precision little Dirac
+  operator on the (even) interior boundary points of the local block
+  lattice to the neighbouring processes.
+
+Aw_t Awop(void)
+  Returns a structure containing the matrices that describe the
+  single-precision little Dirac operator.
+
+Aw_t Awophat(void)
+  Returns a structure containing the matrices that describe the
+  single-precision even-odd preconditioned little Dirac operator.
+
+Aw_dble_t Awop_dble(void)
+  Returns a structure containing the matrices that describe the
+  double-precision little Dirac operator.
+
+Aw_dble_t Awophat_dble(void)
+  Returns a structure containing the matrices that describe the
+  double-precision even-odd preconditioned little Dirac operator.
+
+void set_Aw(double mu)
+  Computes the single- and the double-precision little Dirac operator.
+  The SW term is updated if needed and the twisted mass is set to mu.
+  If the twisted-mass flag is set, the twisted-mass term is switched
+  on the odd sites of the lattice.
+
+int set_Awhat(double mu)
+  Computes the single- and the double-precision even-odd preconditioned
+  little Dirac operator. The program calls set_Aw(mu) and thus updates
+  the operator w/o even-odd preconditioning too. The little modes are
+  updated as well (see ltl_modes.c). On exit the program returns 0 if
+  all matrix inversions were safe and 1 if not.
+
+void Aw(complex *v,complex *w)
+  Applies the little Dirac operator to the field v and assigns the
+  result to the field w.
+
+void Aweeinv(complex *v,complex *w)
+  Applies the inverse of the even-even part of the little Dirac operator
+  to the field v and assigns the result to the field w on the even blocks.
+  On the odd blocks, w is unchanged.
+
+void Awooinv(complex *v,complex *w)
+  Applies the inverse of the odd-odd part of the little Dirac operator
+  to the field v and assigns the result to the field w on the odd blocks.
+  On the even blocks, w is unchanged.
+
+void Awoe(complex *v,complex *w)
+  Applies the odd-even part of the little Dirac operator to the field v
+  and assigns the result to the field w on the odd blocks. On the even
+  blocks, w is unchanged.
+
+void Aweo(complex *v,complex *w)
+  Applies the even-odd part of the little Dirac operator to the field v
+  and *subtracts* the result from the field w on the even blocks. On the 
+  odd blocks, w is unchanged.
+
+void Awhat(complex *v,complex *w)
+  Applies the even-odd preconditioned little Dirac operator to the field
+  v and assigns the result to the field w on the even blocks. On the odd
+  blocks, w is unchanged.
+
+void Aw_dble(complex_dble *v,complex_dble *w)
+  Applies the little Dirac operator to the field v and assigns the
+  result to the field w.
+
+void Aweeinv_dble(complex_dble *v,complex_dble *w)
+  Applies the inverse of the even-even part of the little Dirac operator
+  to the field v and assigns the result to the field w on the even blocks.
+  On the odd blocks, w is unchanged.
+
+void Awooinv_dble(complex_dble *v,complex_dble *w)
+  Applies the inverse of the odd-odd part of the little Dirac operator
+  to the field v and assigns the result to the field w on the odd blocks.
+  On the even blocks, w is unchanged.
+
+void Awoe_dble(complex_dble *v,complex_dble *w)
+  Applies the odd-even part of the little Dirac operator to the field v
+  and assigns the result to the field w on the odd blocks. On the even
+  blocks, w is unchanged.
+
+void Aweo_dble(complex_dble *v,complex_dble *w)
+  Applies the even-odd part of the little Dirac operator to the field v
+  and *subtracts* the result from the field w on the even blocks. On the 
+  odd blocks, w is unchanged.
+
+void Awhat_dble(complex_dble *v,complex_dble *w)
+  Applies the even-odd preconditioned little Dirac operator to the field
+  v and assigns the result to the field w on the even blocks. On the odd
+  blocks, w is unchanged.
+
+int set_ltl_modes(void)
+  Computes the little modes, the associated little-little Dirac
+  operator and its inverse. The program returns 0 if the inversion
+  was safe and 1 if not.
+
+complex_dble *ltl_matrix(void)
+  Returns the pointer to an Ns x Ns matrix that represents the
+  *inverse* of the double-precision little-little Dirac operator.

@@ -1,0 +1,109 @@
+
+********************************************************************************
+
+                        Basic utility functions
+
+********************************************************************************
+
+
+Files
+-----
+
+endian.c       Byte swapping programs
+
+mutils.c       Utility programs used in main programs
+
+utils.c        Collection of basic utility programs
+
+
+Include file
+------------
+
+The file utils.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+int endianness(void)
+  Returns LITTLE_ENDIAN if the machine is little endian and BIG_ENDIAN
+  if it is big endian. Otherwise the return value is UNKNOWN_ENDIAN
+
+void bswap_int(int n,void *a)
+  Inverts the byte order of the array elements a[0],..,a[n-1]
+  assuming these are 4 byte long 
+
+void bswap_double(int n,void *a)
+  Inverts the byte order of the array elements a[0],..,a[n-1]
+  assuming these are 8 byte long 
+
+int find_opt(int argc,char *argv[],char *opt)
+  Returns the position of the option opt in the array argv[]. Only
+  the elements argv[1],..,argv[argc-1] are scanned and 0 is returned
+  if opt is not found.
+
+int digits(double x,double dx,char *fmt)
+  Assuming x is a value with error dx, this program returns the number n
+  of fractional digits to print so that all significant digits plus two
+  more are shown. The print format fmt has to be "e" or "f" depending on
+  whether the number is to be printed using the "%.ne" or "%.nf" format
+  string. In the second case dx has to be in the range 0<dx<1, and
+  (int)(10^n*dx) is then a two-digit integer that represents the error
+  in the last two digits of the printed value.
+
+int fdigits(double x)
+  Returns the smallest integer n such that the value of x printed with
+  print format %.nf coincides with x up to a relative error at most a
+  few times the machine precision DBL_EPSILON.
+
+int name_size(char *format,...)
+  This program returns the length of the string that would be printed
+  by calling sprintf(*,format,...). The format string can be any
+  combination of literal text and the conversion specifiers %s, %d and
+  %.nf (where n is a positive integer).
+
+long find_section(FILE stream,char *title)
+  This program scans stream for a line starting with the string "[title]"
+  (after any number of blanks). It terminates with an error message if no
+  such line is found or if there are several of them. The program returns
+  the offset of the line from the beginning of the file and positions the
+  the file pointer to the next line.
+
+long read_line(FILE stream,char *tag,char *format,...)
+  This program reads a line of text and data from stream in a controlled
+  manner, as described in the notes below. The tag can be the empty string
+  "" and must otherwise be an alpha-numeric word that starts with a letter.
+  If it is not empty, the program searches for the tag in the current
+  section. An error occurs if the tag is not found. The program returns
+  the offset of the line from the beginning of the file and positions the
+  file pointer to the next line.
+
+int safe_mod(int x,int y)
+  Returns x mod y, where y is assumed positive and x can have any
+  sign. The return value is in the interval [0,y)
+
+void *amalloc(size_t size,int p)
+  Allocates an aligned memory area of "size" bytes, with starting
+  address (the return value) that is an integer multiple of 2^p
+
+void afree(void *addr)
+  Frees the aligned memory area at address "addr" that was 
+  previously allocated using amalloc
+
+void error(int test,int no,char *name,char *format,...)
+  Checks whether "test"=0 and if not aborts the program gracefully
+  with error number "no" after printing the "name" of the calling
+  program and an error message to stdout. The message is formed using
+  the "format" string and any additional arguments, exactly as in a
+  printf statement
+
+void error_root(int test,int no,char *name,char *format,...)
+  Same as error(), provided for compatibility
+
+int error_loc(int test,int no,char *name,char *format,...)
+  Same as error(), except that "test" is returned. Provided for
+  compatibility
+
+void message(char *format,...)
+  Same as printf(), provided for compatibility

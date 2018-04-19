@@ -1,0 +1,69 @@
+
+################################################################################
+#
+# Two-flavour QCD with periodic boundary conditions, twisted-mass reweighting
+# of the second kind and decomposition of the reweighting factor in 3 factors.
+#
+################################################################################
+
+[Run name]
+name         48x24v2
+
+[Directories]
+log_dir      /data/openQCD/ms1/log
+dat_dir      /data/openQCD/ms1/dat
+loc_dir      /ndata/openQCD/cnfg
+cnfg_dir     /data/openQCD/cnfg
+
+[Configurations]
+first        10
+last         90
+step         2
+nrw          1
+
+[Random number generator]
+level        0
+seed         78711
+
+[Lattice parameters]
+kappa        0.13635
+csw          1.90952
+
+[Boundary conditions]
+type         3
+theta        0.0 0.0 0.0
+
+[Reweighting factor 0]
+rwfact       RWTM2
+im0          0
+mu           0.0005 0.001 0.003
+isp          0
+nsrc         32
+
+[Solver 0]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          128
+res          1.0e-11
+
+[SAP]
+bs           4 6 6 4
+
+[Deflation subspace]
+bs           4 6 6 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.13635
+mu           0.001
+ninv         10
+nmr          4
+ncy          4
+
+[Deflation projection]
+nkv          16
+nmx          128
+res          1.0e-2

@@ -1,0 +1,152 @@
+
+********************************************************************************
+
+           Block allocation and block field initialization programs
+
+********************************************************************************
+
+
+Files
+-----
+
+blk_grid.c     Block grid allocation.
+
+block.c        Basic allocation programs for blocks of lattice points.
+
+map_s2blk.c    Copying of spinor fields to and from the blocks in a
+               block grid.
+
+map_sw2blk.c   Copying of the SW fields to the blocks in a block grid.
+
+map_u2blk.c    Copying of the gauge fields to the blocks in a block grid.
+
+
+Include file
+------------
+
+The file block.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+The types block_t, bndry_t and blk_grid_t are also defined there and the
+meaning of the entries in these structures is explained in the file
+README.block.
+
+
+List of functions
+-----------------
+
+void alloc_bgr(blk_grid_t grid)
+  Allocates the specified block grid. The block array and the block
+  fields are put in the static memory of this module and are properly
+  initialized.
+
+block_t *blk_list(blk_grid_t grid,int *nb,int *isw)
+  Returns the pointer to the block array of the specified grid. The
+  number of blocks on the local lattice is assigned to nb and isw is
+  set to 0 or 1 depending on whether the first block is black or white
+  (by definition it is black on the first process). If the block grid
+  is not allocated, the program returns NULL and sets nb and isw to 0.
+
+void alloc_blk(block_t *b,int *bo,int *bs,
+               int iu,int iud,int ns,int nsd)
+  Sets the offset and side-lengths of the block b to bo[4] and bs[4],
+  respectively, and allocates the block fields depending on the values
+  of the other parameters. The single-precision gauge and SW fields are
+  allocated if iu=1, the double-precision gauge and SW fields if iud=1,
+  while ns and nsd are the numbers of single- and double-precision Dirac
+  fields that are allocated. All elements of the block are properly
+  initialized and the share flag b.shf is set to 0x0 (see the notes).
+
+void alloc_bnd(block_t *b,int iu,int iud,int nw,int nwd)
+  Allocates the boundary structures b.bb in the block b and the fields
+  in there depending on the parameters iu,iud,nw and nwd. The single-
+  and double-precision gauge fields are allocated if iu=1 and iud=1,
+  respectively, while nw and nwd are the numbers of single- and double-
+  precision Weyl fields that are allocated. All elements of the block
+  are then properly initialized (see the notes).
+
+void clone_blk(block_t *b,int shf,int *bo,block_t *c)
+  Sets the offset of the block c to bo[4] and its side lengths to
+  b.bs[4]. The fields in c are then allocated depending on the bits
+  b1,b2,..,b8 (counting from the lowest) of the share flag shf. The
+  relevant bits are:
+
+    b2=1: b.ipt,b.iup and b.idn are shared,
+    b3=1: b.u, b.bb.u and b.sw are shared,
+    b4=1: b.ud, b.bb.ud and b.swd are shared,
+    b5=1: b.s is shared,
+    b6=1: b.sd is shared.
+    b7=1: b.bb.w is shared,
+    b8=1: b.bb.wd is shared.
+
+  All fields that are not shared and are allocated on b are allocated
+  on c as well, while the pointers to the shared fields are set to those
+  of b. An error occurs if a field is shared according to the share flag
+  b.shf on b but not according to shf. Moreover, the offset differences
+  bo[mu]-b.bo[mu] must be integer multiples of b.bs[mu] for all mu. The
+  share flag c.shf is set to shf.
+
+void free_blk(block_t *b)
+  Frees the arrays in the block b and in the boundaries b.bb that were
+  previously allocated by alloc_blk(), alloc_bnd() or clone_blk(). The
+  boundary structures are then freed too (if they were allocated) and
+  all entries in the block structure are set to 0 (or NULL).
+
+int ipt_blk(block_t *b,int *x)
+  Returns the index of the lattice point in the block b with Cartesian
+  coordinates x[4] relative to the base point of b.
+
+void assign_s2sblk(blk_grid_t grid,int n,ptset_t set,spinor *s,int k)
+  Assigns the relevant part of the global single-precision spinor field s
+  to the single-precision field b.s[k] on the n'th block of the specified
+  block grid. Depending on the specified point set, the field on the even,
+  odd or all points is copied.
+
+void assign_sblk2s(blk_grid_t grid,int n,ptset_t set,int k,spinor *s)
+  Assigns the single-precision spinor field b.s[k] on the n'th block of
+  the specified block grid to the relevant part of the global single-
+  precision field s. Depending on specified point set, the field on the
+  even, odd or all points is copied.
+
+void assign_s2sdblk(blk_grid_t grid,int n,ptset_t set,spinor *s,int k)
+  Assigns the relevant part of the global single-precision spinor field s
+  to the double-precision field b.sd[k] on the n'th block of the specified
+  block grid. Depending on the specified point set, the field on the even,
+  odd or all points is copied.
+
+void assign_sd2sdblk(blk_grid_t grid,int n,ptset_t set,
+                     spinor_dble *sd,int k)
+  Assigns the relevant part of the global double-precision spinor field sd
+  to the double-precision field b.sd[k] on the n'th block of the specified
+  block grid. Depending on the specified point set, the field on the even,
+  odd or all points is copied.
+
+void assign_sdblk2sd(blk_grid_t grid,int n,ptset_t set,
+                     int k,spinor_dble *sd)
+  Assigns the single-precision spinor field b.sd[k] on the n'th block of
+  the specified block grid to the relevant part of the global single-
+  precision field sd. Depending on specified point set, the field on the
+  even, odd or all points is copied.
+
+int assign_swd2swbgr(blk_grid_t grid,ptset_t set)
+  Assigns the global double-precision SW field to the corresponding
+  single-precision fields in the specified grid. On the given point
+  set, the copied Pauli matrices are inverted before assignment and
+  the program returns 0 or 1 depending on whether the inversions were
+  safe or not.
+
+int assign_swd2swdblk(blk_grid_t grid,int n,ptset_t set)
+  Assigns the global double-precision SW field to the corresponding
+  double-precision field on the n'th block of the specified grid. On
+  the given point set, the copied Pauli matrices are inverted before
+  assignment and the program returns 0 or 1 depending on whether the
+  inversions were safe or not.
+
+void assign_ud2ubgr(blk_grid_t grid)
+  Assigns the global double-precision gauge field to the corresponding
+  single-precision fields in the specified block grid (see the notes).
+
+void assign_ud2udblk(blk_grid_t grid,int n)
+  Assigns the global double-precision gauge field to the corresponding
+  double-precision field on the n'th block of the specified block grid
+  (see the notes).

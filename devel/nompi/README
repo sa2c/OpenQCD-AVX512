@@ -1,0 +1,27 @@
+
+Checking a non-MPI function that should also be usable in an MPI
+program requires a replacement for the basic utility functions. The
+associated modules and include files are found in the modules/nompi
+and include/nompi directories.
+
+Currently the directories with the check programs are 
+
+extras           Modified Bessel function
+
+forces           Generic functions for MD force calculations
+
+linalg           Generic complex matrix operations
+
+main             Simple analysis programs for the data files produced by 
+                 the programs in the directory main
+
+random           Random number generator
+
+ratfcts          Rational approximations
+
+su3fcts          SU(3) exponential function, SU(3) products, ...
+
+sw_term          Pauli matrix operations
+
+utils            Byte swapping
+

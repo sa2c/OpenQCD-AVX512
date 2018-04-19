@@ -1,0 +1,144 @@
+
+********************************************************************************
+
+        Generic initialization and assignment programs for spinor fields
+
+********************************************************************************
+
+
+Files
+-----
+
+Pbnd.c          Generic programs for the projector theta to the exterior
+                boundary of a block of lattice points (version for single-
+                precision fields)
+
+Pbnd_dble.c     Generic programs for the projector theta to the exterior
+                boundary of a block of lattice points (version for double-
+                precision fields)
+
+scom.c          Communication functions for single-precision spinor fields
+
+sdcom.c         Communication functions for double-precision spinor fields
+
+sflds.c         Initialization and assignment programs
+
+
+Include file
+------------
+
+The file sflds.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void (*assign_s2w[8])(int *imb,int vol,spinor *s,weyl *r)
+  Applies the projector theta[ifc] to the spinor s[imb[ix]],
+  ix=0,..,vol-1, and assigns the result to the weyl spinor r[ix].
+
+void (*add_assign_w2s[8])(int *imb,int vol,weyl *s,spinor *r)
+  Expands the Weyl spinor s[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and adds psi to r[imb[ix]].
+
+void (*sub_assign_w2s[8])(int *imb,int vol,weyl *s,spinor *r)
+  Expands the Weyl spinor s[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and subtracts psi from r[imb[ix]].
+
+void (*mulg5_sub_assign_w2s[8])(int *imb,int vol,weyl *s,spinor *r)
+  Expands the Weyl spinor s[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and subtracts gamma5*psi from
+  r[imb[ix]].
+
+void (*assign_sd2wd[8])(int *imb,int vol,spinor_dble *sd,weyl_dble *rd)
+  Applies the projector theta[ifc] to the spinor sd[imb[ix]],
+  ix=0,..,vol-1, and assigns the result to the weyl spinor rd[ix]
+
+void (*add_assign_wd2sd[8])(int *imb,int vol,weyl_dble *sd,spinor_dble *rd)
+  Expands the Weyl spinor sd[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and adds psi to rd[imb[ix]]
+
+void (*sub_assign_wd2sd[8])(int *imb,int vol,weyl_dble *sd,spinor_dble *rd)
+  Expands the Weyl spinor sd[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and subtracts psi from rd[imb[ix]]
+
+void (*mulg5_sub_assign_wd2sd[8])(int *imb,int vol,weyl_dble *sd,
+                                  spinor_dble *rd)
+  Expands the Weyl spinor sd[ix], ix=0,..,vol-1, to a Dirac spinor
+  psi satisfying theta[ifc]*psi=psi and subtracts gamma5*psi from
+  rd[imb[ix]]
+
+void cps_int_bnd(int is,spinor *s)
+  Copies the spinors s at the even interior boundary points of the
+  local lattice to the corresponding points on the neighbouring MPI
+  processes. Only half of the spinor components are copied, namely
+  theta[ifc^(is&0x1)]*s, where ifc labels the faces of the local
+  lattice on the sending process.
+
+void cps_ext_bnd(int is,spinor *s)
+  Copies the spinors s at the even exterior boundary points of the
+  local lattice to the neighbouring MPI processes and *adds* them to
+  the field on the matching points of the target lattices. Only half
+  of the spinor components are copied, assuming the spinors s satisfy
+  s=theta[ifc^(is&0x1)]*s, where ifc labels the faces of the local
+  lattice on the sending process.
+
+void cpsd_int_bnd(int is,spinor_dble *sd)
+  Copies the spinors sd at the even interior boundary points of the
+  local lattice to the corresponding points on the neighbouring MPI
+  processes. Only half of the spinor components are copied, namely
+  theta[ifc^(is&0x1)]*sd, where ifc labels the faces of the local
+  lattice on the sending process.
+
+void cpsd_ext_bnd(int is,spinor_dble *sd)
+  Copies the spinors sd at the even exterior boundary points of the
+  local lattice to the neighbouring MPI processes and *adds* them to
+  the field on the matching points of the target lattices. Only half
+  of the spinor components are copied, assuming the spinors sd satisfy
+  sd=theta[ifc^(is&0x1)]*sd, where ifc labels the faces of the local
+  lattice on the sending process.
+
+void set_s2zero(int vol,spinor *s)
+  Sets the single-precision spinor field s to zero.
+
+void set_sd2zero(int vol,spinor_dble *sd)
+  Sets the double-precision spinor field sd to zero.
+
+void random_s(int vol,spinor *s,float sigma)
+  Initializes the components of the single-precision field s
+  to (complex) random values z with distribution proportional
+  to exp{-|z|^2/sigma^2}.
+
+void random_sd(int vol,spinor_dble *sd,double sigma)
+  Initializes the components of the double-precision field sd
+  to (complex) random values z with distribution proportional
+  to exp{-|z|^2/sigma^2}.
+
+void assign_s2s(int vol,spinor *s,spinor *r)
+  Assigns the single-precision field s to the single-precision
+  field r.
+
+void assign_s2sd(int vol,spinor *s,spinor_dble *rd)
+  Assigns the single-precision field s to the double-precision
+  field rd.
+
+void assign_sd2s(int vol,spinor_dble *sd,spinor *r)
+  Assigns the double-precision field sd to the single-precision
+  field r.
+
+void assign_sd2sd(int vol,spinor_dble *sd,spinor_dble *rd)
+  Assigns the double-precision field sd to the double-precision
+  field rd.
+
+void diff_s2s(int vol,spinor *s,spinor *r)
+  Assigns the difference s-r of the single-precision fields s and
+  r to r.
+
+void add_s2sd(int vol,spinor *s,spinor_dble *rd)
+  Adds the single-precision field s to the double-precision field
+  rd.
+
+void diff_sd2s(int vol,spinor_dble *sd,spinor_dble *rd,spinor *r)
+  Assigns the difference sd-rd of the double-precision fields sd
+  and rd to the single-precision field r.

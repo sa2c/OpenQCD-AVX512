@@ -1,0 +1,6 @@
+
+Utility functions
+
+check1        Test of the endianness and byte swapping programs
+
+check2        Test of the program fdigits()

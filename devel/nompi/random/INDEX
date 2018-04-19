@@ -1,0 +1,27 @@
+
+Random number generation and related programs 
+
+
+check1        Correctness of ranlxs and ranlxd
+
+check2        Save state of ranlxs to a file and reset the generator 
+              from the data on the file
+
+check3        Save state of ranlxd to a file and reset the generator 
+              from the data on the file
+
+check4        Kolmogorov-Smirnov test of the random distribution produced 
+              by gauss and gauss_dble
+
+check5        Statistical test of random_su3
+
+check6        Statistical test of random_su3_dble
+
+check7        Reweighting of gaussian distributions [statistical test of 
+              gauss_dble()]
+
+time1         Timing of ranlxs and gauss
+
+time2         Timing of ranlxd and gauss_dble
+
+

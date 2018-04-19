@@ -1,0 +1,59 @@
+
+********************************************************************************
+
+                     Molecular-dynamics auxiliary fields
+
+********************************************************************************
+
+
+Files
+-----
+
+fcom.c         Communication of the force variables residing at the 
+               boundaries of the local lattices.
+
+mdflds.c       Allocation and initialization of the MD auxiliary fields.
+
+
+
+Include file
+------------
+
+The file mdflds.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void copy_bnd_frc(void)
+  Copies the force variables on the boundaries of the local lattice
+  from the neighbouring processes. The force variables on the spatial
+  links at time T are fetched only in the case of periodic boundary
+  conditions.
+
+void add_bnd_frc(void)
+  Adds the values of the force variables on the boundaries of the  
+  local lattice to the force field on the neighbouring processes.
+  The force variables on the spatial links at time T are added only
+  in the case of periodic boundary conditions.
+
+mdflds_t *mdflds(void)
+  Returns the pointer to a mdflds_t structure containing the force and
+  momentum field. The fields are automatically allocated if needed.
+
+void set_frc2zero(void)
+  Sets all force variables, including those on the boundary, to zero.
+
+void bnd_mom2zero(void)
+  Sets the components of the momentum field on the static links
+  to zero (see the notes).
+
+void random_mom(void)
+  Sets the elements X of the momentum field on the active links to
+  random values with distribution proportional to exp(tr{X^2}). On
+  the static links the field is set to zero (see the notes).
+
+double momentum_action(int icom)
+  Returns the action of the momentum field. The action is summed
+  over all MPI processes if (and only if) icom=1.

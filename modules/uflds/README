@@ -1,0 +1,113 @@
+
+********************************************************************************
+
+                Allocation and initialization of the gauge fields
+
+********************************************************************************
+
+
+Files
+-----
+
+bstap.c        Allocation and computation of the boundary staple field.
+
+plaq_sum.c     Calculation of plaquette sums.
+
+shift.c        Translation of the global double-precision gauge field.
+
+udcom.c        Communication of the double-precision link variables at
+               the boundaries of the local lattice.
+
+uflds.c        Allocation and initialization of the global gauge fields.
+
+
+Include file
+------------
+
+The file uflds.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+su3_dble *bstap(void)
+  Returns the base address of the boundary staple field. If it is
+  not already allocated, the field is allocated and initialized to
+  unity.
+
+void set_bstap(void)
+  Computes the boundary staples and copies them to the neighbouring
+  MPI processes (see doc/gauge_actions.pdf).
+
+double plaq_sum_dble(int icom)
+  Returns the sum of Re[tr{U(p)}] over all unoriented plaquettes p,
+  where U(p) is the product of the double-precision link variables
+  around p. The sum runs over all plaquettes with lower-left corner
+  in the local lattice, omitting the plaquettes at time NPROC0*L0-1
+  if open boundary conditions are chosen. If icom=1 the global sum
+  of the local sums is returned and otherwise just the local sum.
+
+double plaq_wsum_dble(int icom)
+  Same as plaq_sum_dble(), but giving weight 1/2 to the contribution
+  of the space-like plaquettes at the boundaries of the lattice with
+  open boundary conditions (with periodic and SF boundary conditions
+  the same value as plaq_sum_dble() is returned).
+
+double plaq_action_slices(double *asl)
+  Computes the time-slice sums asl[x0] of the tree-level O(a)-improved
+  plaquette action density of the double-precision gauge field. The
+  factor 1/g0^2 is omitted and the time x0 runs from 0 to NPROC0*L0-1.
+  The program returns the total action.
+
+int shift_ud(int *s)
+  Replaces the double-precision gauge field U(x,mu) by U(x-s,mu), where
+  s[4] is any given shift vector. The program returns the number of
+  elementary steps (translations by 1 lattice unit) that were performed.
+
+void copy_bnd_ud(void)
+  Copies the double-precision link variables from the neighbouring MPI
+  processes to the exterior boundaries of the local lattice. The field
+  variables on the spatial links at time NPROC0*L0 are fetched only in
+  the case of periodic boundary conditions.
+
+su3 *ufld(void)
+  Returns the base address of the single-precision gauge field. If it
+  is not already allocated, the field is allocated and initialized to
+  unity.
+
+su3_dble *udfld(void)
+  Returns the base address of the double-precision gauge field. If it
+  is not already allocated, the field is allocated and initialized to
+  unity. Then the boundary conditions are set according to the data
+  base by calling set_bc() [bcnds.c].
+
+void random_ud(void)
+  Initializes the active double-precision link variables to uniformly
+  distributed random SU(3) matrices. Then the boundary conditions are
+  set according to the data base by calling set_bc() [bcnds.c].
+
+void set_ud_phase(void)
+  Multiplies the double-precision link variables U(x,k) by the phase
+  factor exp{i*theta[k-1]/N[k]}, for all k=1,2,3, where N[mu] is the
+  size of the (global) lattice in direction mu. The angles theta[0],
+  theta[1],theta[2] are set by set_bc_parms() [flags/lat_parms.c]. If
+  periodic boundary conditions are chosen in time, the variables U(x,0)
+  at global time N[0]-1 are multiplied by -1. The program does nothing
+  if the phase is already set according to the flags data base.
+
+void unset_ud_phase(void)
+  Removes the phase of the double-precision link variables previously
+  set by set_ud_phase(). No action is performed if the phase is not
+  set according to the flags data base.
+
+void renormalize_ud(void)
+  Projects the active double-precision link variables back to SU(3).
+  The static link variables are left untouched. An error occurs if
+  the phase of the field is set according to the flags data base [see
+  set_ud_phase() and unset_ud_phase()].
+
+void assign_ud2u(void)
+  Assigns the double-precision gauge field to the single-precision
+  gauge field. All link variables in the local field, including the
+  static ones, are copied.

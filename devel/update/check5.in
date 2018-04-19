@@ -1,0 +1,43 @@
+
+[Solver 0]
+solver       CGNE
+nmx          256
+res          1.0e-12
+
+[Solver 1]
+solver       SAP_GCR
+nmx          128
+nkv          16
+isolv        0
+nmr          4
+ncy          3
+res          1.0e-12
+
+[Solver 2]
+solver       DFL_SAP_GCR
+nmx          64
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+res          1.0e-12
+
+[SAP]
+bs           4 4 4 4
+
+[Deflation subspace]
+bs           4 4 4 4
+Ns           8
+
+[Deflation subspace generation]
+kappa        0.1350
+mu           0.01
+ninv         5
+nmr          4
+ncy          5
+
+[Deflation projection]
+nkv          16
+nmx          64
+res          1.0e-2
+

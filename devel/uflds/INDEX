@@ -1,0 +1,18 @@
+
+Allocation and initialization of the global gauge fields.
+
+check1        Initialization of the link variables.
+
+check2        Renormalization of the link variables.
+
+check3        Check of the program that translates the double-precsion 
+              gauge field.
+
+check4        Check of the programs for the plaquette sums of the 
+              double-precision gauge field.
+
+check5        Check of the program set_bstap().
+
+All programs accept the option -bc <type> that allows the type of boundary
+condition to be chosen. When the option is not set, open boundary conditions
+are assumed.

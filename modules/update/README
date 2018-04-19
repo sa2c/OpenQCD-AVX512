@@ -1,0 +1,192 @@
+
+********************************************************************************
+
+                           HMC simulation algorithm
+
+********************************************************************************
+
+
+Files
+-----
+
+chrono.c       Propagation of solutions of the Dirac equation
+
+counters.c     Solver iteration counters
+
+hmc.c          HMC simulation algorithm
+
+mdint.c        Integration of the molecular-dynamics equations
+
+mdsteps.c      Molecular-dynamics integrator
+
+rwrat.c        Rational function reweighting factor
+
+rwtm.c         Twisted-mass reweighting factors
+
+rwtmeo.c       Twisted-mass reweighting factors (even-odd preconditioned
+               version)
+
+
+Include file
+------------
+
+The file update.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void setup_chrono(void)
+  Allocates the required memory space for the stacks of previous
+  solutions to be used in the course of the molecular-dynamics
+  trajectories. The number and size of the stacks is inferred from
+  the parameter data base.
+
+void add_chrono(int icr,double t,spinor_dble *psi)
+  Adds the solution psi obtained at molecular-dynamics time t to
+  the stack number icr of previously calculated solutions. If the
+  stack contains previous solutions, psi is added only when t is
+  larger than the time at which the last solution was added.
+
+int get_chrono(int icr,double t,spinor_dble *psi)
+  Extrapolates the solutions stored in the stack number icr to
+  molecular-dynamics time t. The program returns 0 and leaves psi
+  unchanged if the stack does not contain any previous solutions.
+  Otherwise the program assigns the extrapolated solution to psi
+  and returns 1.
+
+void reset_chrono(void)
+  Sets all counters of previously computed solutions to zero.
+
+void setup_counters(void)
+  Creates the counters required for counting the solver iteration
+  numbers along the molecular-dynamics trajectories. The solvers
+  for the Dirac equation used by the action and force programs in
+  the course of the HMC algorithm are inferred from the parameter
+  data base.
+
+void clear_counters(void)
+  Sets all counters to zero.
+
+void add2counter(char *type,int idx,int *status)
+  Adds the status numbers "status" to the counter characterized by
+  "type" and index "idx". The possible values of type are "action"
+  and "force", while the index idx is the one of the action or force
+  in the parameter data base (see action_parms.c and force_parms.c
+  in the flags directory). The length of the status array passed to
+  this program must coincide with the one of the status argument of
+  the corresponding action or force program.
+
+int get_count(char *type,int idx,int *status)
+  Returns the number of times add2counter(type,idx,status) has been
+  called since the counter was last cleared. On exit the program
+  assigns the sum of the accumulated status values to the argument
+  status [the meaning of the arguments is otherwise the same is in
+  the case of add2counter()].
+
+void print_avgstat(char *type,int idx)
+  Prints the average status values of the counter specified by "type"
+  and "idx" [as in add2counter()] to stdout on MPI process 0.
+
+void print_all_avgstat(void)
+  Prints the average status values of all known counters to stdout on
+  MPI process 0.
+
+void hmc_wsize(int *nwud,int *nws,int *nwsd,int *nwv,int *nwvd)
+  Determines the minimal sizes of the workspaces required for the
+  HMC algorithm based on the information in the parameter data base.
+  On exit the program returns the numbers of double-precision gauge
+  (nwud), spinor (nwsd) and complex vector (nwvd) fields as well as
+  the numbers of single-precision spinor (nws) and complex vector
+  (nwv) fields that must be allocated.
+
+int run_hmc(double *act0,double *act1)
+  Generates a random momentum field, integrates the MD equations and
+  applies the HMC acceptance step to the fields at the end of the MD
+  trajectory (see the notes).
+   The arrays act0 and act1 must have at least nact+1 elements, where
+  nact is the number of actions that take part in the HMC algorithm
+  (see flags/hmc_parms.c). On exit act0 and act1 contain the part of
+  the actions computed on the local lattice at the beginning of the MD
+  evolution, the first entry being the momentum action, the second the
+  gauge action and the remaining entries the fermion actions in the
+  order specified by the array iact returned by hmc_parms().
+   The program returns 1 or 0 depending on whether the field generated
+  by the molecular-dynamics evolution was accepted or not. If it was
+  not accepted, the old gauge field is restored.
+
+void run_mdint(void)
+  Integrates the molecular-dynamics equations using the current
+  integrator (see the notes).
+
+void set_mdsteps(void)
+  Constructs the integrator from the data available in the parameter
+  data base (see the notes). The integrator is stored internally in
+  the form of an array of elementary operations (force computations
+  and gauge-field update steps).
+
+mdstep_t *mdsteps(int *nop,int *ntu,int *itu)
+  Returns the array of elementary operations that describe the current
+  integrator. On exit the program assigns the total number of operations
+  to nop and the index of the gauge-field update operation to itu.
+
+void print_mdsteps(int ipr)
+  Prints some information on the current integrator to stdout on MPI
+  process 0. The program always prints the available information on
+  the different levels of the integrator. Whether further information
+  is printed depends on the 3 low bits of the print flat ipr:
+
+   if (ipr&0x1): Force descriptions
+
+   if (ipr&0x2): List of elementary operations
+
+   if (ipr&0x4): Integration time check
+
+  The full information is thus printed if ipr=0x7.
+
+double rwrat(int irp,int n,int *np,int *isp,double *sqn,int **status)
+  Generates a random pseudo-fermion field with normal distribution,
+  assigns its square norm to sqn and returns -ln(r) (see the notes).
+
+double rwtm1(double mu1,double mu2,int isp,double *sqn,int *status)
+  Generates a random pseudo-fermion field with normal distribution,
+  assigns its square norm to sqn and returns -ln(r1) (see the notes).
+  The twisted-mass Dirac equation is solved using the solver specified
+  by the parameter set number isp.
+   The argument status must be pointing to an array of at least 1,1
+  and 3 elements, respectively, in the case of the CGNE, SAP_GCR and
+  DFL_SAP_GCR solver. On exit the array elements contain the status
+  values returned by the solver program.
+
+double rwtm2(double mu1,double mu2,int isp,double *sqn,int *status)
+  Generates a random pseudo-fermion field with normal distribution,
+  assigns its square norm to sqn and returns -ln(r2) (see the notes).
+  The twisted-mass Dirac equation is solved using the solver specified
+  by the parameter set number isp.
+   The argument status must be pointing to an array of at least 1,1
+  and 3 elements, respectively, in the case of the CGNE, SAP_GCR and
+  DFL_SAP_GCR solver. On exit the array elements status[0],status[1]
+  and status[2] contain the averages and sum, respectively, of the
+  status values returned by the solver program.
+
+double rwtm1eo(double mu1,double mu2,int isp,double *sqn,int *status)
+  Generates a random pseudo-fermion field with normal distribution,
+  assigns its square norm to sqn and returns -ln(r1) (see the notes).
+  The twisted-mass Dirac equation is solved using the solver specified
+  by the parameter set number isp.
+   The argument status must be pointing to an array of at least 1,1
+  and 3 elements, respectively, in the case of the CGNE, SAP_GCR and
+  DFL_SAP_GCR solver. On exit the array elements contain the status
+  values returned by the solver program.
+
+double rwtm2eo(double mu1,double mu2,int isp,double *sqn,int *status)
+  Generates a random pseudo-fermion field with normal distribution,
+  assigns its square norm to sqn and returns -ln(r2) (see the notes).
+  The twisted-mass Dirac equation is solved using the solver specified
+  by the parameter set number isp.
+   The argument status must be pointing to an array of at least 1,1
+  and 3 elements, respectively, in the case of the CGNE, SAP_GCR and
+  DFL_SAP_GCR solver. On exit the array elements status[0],status[1]
+  and status[2] contain the averages and sum, respectively, of the
+  status values returned by the solver program.

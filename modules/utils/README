@@ -1,0 +1,307 @@
+
+********************************************************************************
+
+                            Utility programs
+
+********************************************************************************
+
+
+Files
+-----
+
+endian.c       Byte swapping programs
+
+error.c        Error handling functions.
+
+hsum.c         Hierarchical summation programs.
+
+mutils.c       Utility functions used in main programs
+
+utils.c        Basic utility functions
+
+wspace.c       Workspace allocation
+
+
+Include file
+------------
+
+The file utils.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+int endianness(void)
+  Returns LITTLE_ENDIAN if the machine is little endian and BIG_ENDIAN
+  if it is big endian. Otherwise the return value is UNKNOWN_ENDIAN
+
+void bswap_int(int n,void *a)
+  Inverts the byte order of the array elements a[0],..,a[n-1]
+  assuming these are 4 byte long
+
+void bswap_double(int n,void *a)
+  Inverts the byte order of the array elements a[0],..,a[n-1]
+  assuming these are 8 byte long
+
+void set_error_file(char *path,int loc_flag)
+  Sets the path of the file to which error messages are written. If
+  loc_flag!=0, the number of the local MPI process is appended to the
+  file name when the error_loc() function writes a message. Otherwise
+  the same file is used for all error messages.
+
+void error(int test,int no,char *name,char *format,...)
+  Checks whether "test"=0 on all processes and, if not, aborts the
+  program gracefully with error number "no" after printing the "name"
+  of the calling program and an error message to the error file from
+  process 0. The message is formed using the "format" string and any
+  additional arguments, exactly as in a printf() statement.
+
+void error_root(int test,int no,char *name,char *format,...)
+  Same as the error() function except that "test" is examined on
+  process 0 only.
+
+void error_loc(int test,int no,char *name,char *message)
+  Checks whether "test"=0 on the local process and, if not, aborts the
+  program gracefully with error number "no" after printing the "name"
+  of the calling program and an error message to the local error file.
+  The message is formed using the "format" string and any additional
+  arguments, exactly as in a printf() statement.
+
+int init_hsum(int n)
+  Creates a new instance of a hierarchical sum and returns the id of
+  the instance. The parameter n>=1 specifies the number of streams
+  of double-precision floating point numbers that are to be summed
+  in parallel.
+
+void reset_hsum(int id)
+  Resets the hiearchical sum with the given id to zero.
+
+void add_to_hsum(int id,double *x)
+  Adds the numbers x[0],..,x[n-1] to the hiearchical sum with the
+  given id. More precisely, the number x[k] is added to the k'th
+  sum accumulated in parallel. The number n of parallel sums is
+  the one set by init_hsum().
+
+void local_hsum(int id,double *sx)
+  Evaluates the hiearchical sum with the given id and assigns the
+  k'th sum computed in parallel to sx[k] (k=0,..,n-1). The number
+  n of parallel sums is the one set by init_hsum().
+
+void global_hsum(int id,double *sx)
+  Same as local_hsum(), but additionally sums the results over all
+  MPI processes. The calculated sums are guaranteed to be exactly
+  the same on all processes.
+
+int find_opt(int argc,char *argv[],char *opt)
+  On process 0, this program compares the string opt with the arguments
+  argv[1],..,argv[argc-1] and returns the position of the first argument
+  that matches the string. If there is no matching argument, or if the
+  program is called from another process, the return value is 0.
+
+int fdigits(double x)
+  Returns the smallest integer n such that the value of x printed with
+  print format %.nf coincides with x up to a relative error at most a
+  few times the machine precision DBL_EPSILON.
+
+void check_dir(char* dir)
+  This program checks whether the directory dir is locally accessible,
+  from each process, and aborts the main program with an informative
+  error message if this is not the case. The program must be called
+  simultaneously on all processes, but the argument may depend on the
+  process.
+
+void check_dir_root(char* dir)
+  On process 0, this program checks whether the directory dir is
+  accessible and aborts the main program with an informative error
+  message if this is not the case. When called on other processes,
+  the program does nothing.
+
+int name_size(char *format,...)
+  On process 0, this program returns the length of the string that
+  would be printed by calling sprintf(*,format,...). The format
+  string can be any combination of literal text and the conversion
+  specifiers %s, %d and %.nf (where n is a positive integer). When
+  called on other processes, the program does nothing and returns
+  the value of NAME_SIZE.
+
+long find_section(char *title)
+  On process 0, this program scans stdin for a line starting with
+  the string "[title]" (after any number of blanks). It terminates
+  with an error message if no such line is found or if there are
+  several of them. The program returns the offset of the line from
+  the beginning of the file and positions the file pointer to the
+  next line. On processes other than 0, the program does nothing
+  and returns -1L.
+
+long read_line(char *tag,char *format,...)
+  On process 0, this program reads a line of text and data from stdin
+  in a controlled manner, as described in the notes below. The tag can
+  be the empty string "" and must otherwise be an alpha-numeric word
+  that starts with a letter. If it is not empty, the program searches
+  for the tag in the current section. An error occurs if the tag is not
+  found. The program returns the offset of the line from the beginning
+  of the file and positions the file pointer to the next line. On
+  processes other than 0, the program does nothing and returns -1L.
+
+int count_tokens(char *tag)
+  On process 0, this program finds and reads a line from stdin, exactly
+  as read_line(tag,..) does, and returns the number of tokens found on
+  that line after the tag. Tokens are separated by white space (blanks,
+  tabs or newline characters) and comments (text beginning with #) are
+  ignored. On exit, the file pointer is positioned at the next line. If
+  called on other processes, the program does nothing and returns 0.
+
+void read_iprms(char *tag,int n,int *iprms)
+  On process 0, this program finds and reads a line from stdin, exactly
+  as read_line(tag,..) does, reads n integer values from that line after
+  the tag and assigns them to the elements of the array iprms. An error
+  occurs if less than n values are found on the line. The values must be
+  separated by white space (blanks, tabs or newline characters). On exit,
+  the file pointer is positioned at the next line. When called on other
+  processes, the program does nothing.
+
+void read_dprms(char *tag,int n,double *dprms)
+  On process 0, this program finds and reads a line from stdin, exactly
+  as read_line(tag,..) does, reads n double values from that line after
+  the tag and assigns them to the elements of the array iprms. An error
+  occurs if less than n values are found on the line. The values must be
+  separated by white space (blanks, tabs or newline characters).On exit,
+  the file pointer is positioned at the next line. When called on other
+  processes, the program does nothing.
+
+int copy_file(char *in,char *out)
+  Copies the file "in" to the file "out" in binary mode. An error occurs
+  if the file copy is not successful.
+
+int safe_mod(int x,int y)
+  Returns x mod y, where y is assumed positive and x can have any
+  sign. The return value is in the interval [0,y)
+
+void *amalloc(size_t size,int p)
+  Allocates an aligned memory area of "size" bytes, with a starting
+  address (the return value) that is an integer multiple of 2^p. A
+  NULL pointer is returned if the allocation was not successful
+
+void afree(void *addr)
+  Frees the aligned memory area at address "addr" that was previously
+  allocated using amalloc. If the memory space at this address was
+  already freed using afree, or if the address does not match an
+  address previously returned by amalloc, the program does not do
+  anything
+
+int mpi_permanent_tag(void)
+  Returns a new send tag that is guaranteed to be unique and which
+  is therefore suitable for use in permanent communication requests.
+  The available number of tags of this kind is 16384
+
+int mpi_tag(void)
+  Returns a new send tag for use in non-permanent communications.
+  Note that the counter for these tags wraps around after 16384
+  tags have been delivered
+
+void message(char *format,...)
+  Prints a message from process 0 to stdout. The usage and argument
+  list is the same as in the case of the printf function
+
+alloc_wud(int n)
+  Allocates a workspace of n double-precision gauge fields.
+
+su3_dble **reserve_wud(int n)
+  Reserves a new workspace of n global double-precision gauge fields
+  and returns the array ud[0],..,ud[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_wud(void)
+  Releases the workspace of global double-precision gauge fields that
+  was last reserved and returns the number of fields that are released.
+
+int wud_size(void)
+  Returns the number of global double-precision gauge fields that
+  are currently reserved.
+
+alloc_wfd(int n)
+  Allocates a workspace of n double-precision force fields.
+
+su3_alg_dble **reserve_wfd(int n)
+  Reserves a new workspace of n global double-precision force fields
+  and returns the array fd[0],..,fd[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_wfd(void)
+  Releases the workspace of global double-precision force fields that
+  was last reserved and returns the number of fields that are released.
+
+int wfd_size(void)
+  Returns the number of global double-precision force fields that
+  are currently reserved.
+
+alloc_ws(int n)
+  Allocates a workspace of n single-precision spinor fields.
+
+spinor **reserve_ws(int n)
+  Reserves a new workspace of n global single-precision spinor fields
+  and returns the array s[0],..,s[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_ws(void)
+  Releases the workspace of global single-precision spinor fields that
+  was last reserved and returns the number of fields that are released.
+
+int ws_size(void)
+  Returns the number of global single-precision spinor fields that
+  are currently reserved.
+
+alloc_wsd(int n)
+  Allocates a workspace of n double-precision spinor fields.
+
+spinor_dble **reserve_wsd(int n)
+  Reserves a new workspace of n global double-precision spinor fields
+  and returns the array sd[0],..,sd[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_wsd(void)
+  Releases the workspace of global double-precision spinor fields that
+  was last reserved and returns the number of fields that are released.
+
+int wsd_size(void)
+  Returns the number of global double-precision spinor fields that
+  are currently reserved.
+
+void alloc_wv(int n)
+  Allocates a workspace of n single-precision vector fields.
+
+complex **reserve_wv(int n)
+  Reserves a new workspace of n global single-precision vector fields
+  and returns the array v[0],..,v[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_wv(void)
+  Releases the workspace of global single-precision vector fields that
+  was last reserved and returns the number of fields that are released.
+
+int wv_size(void)
+  Returns the number of global single-precision vector fields that
+  are currently reserved.
+
+void alloc_wvd(int n)
+  Allocates a workspace of n double-precision vector fields.
+
+complex_dble **reserve_wvd(int n)
+  Reserves a new workspace of n global double-precision vector fields
+  and returns the array vd[0],..,vd[n-1] of the base addresses of the
+  fields in the workspace. No workspace is reserved and a NULL pointer
+  is returned if n<=0.
+
+int release_wvd(void)
+  Releases the workspace of global double-precision vector fields that
+  was last reserved and returns the number of fields that are released.
+
+int wvd_size(void)
+  Returns the number of global double-precision vector fields that
+  are currently reserved.

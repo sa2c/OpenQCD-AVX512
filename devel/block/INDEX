@@ -1,0 +1,21 @@
+
+Block grid allocation and field assignment programs
+
+check1        Checks on the local geometry arrays b.ipt,b.iup,b.idn,
+              b.imb,b.ibp and b.bb.ipp,b.bb.map,b.bb.imb for the
+              known block grids. This program also checks ipt_blk().
+
+check2        Checks on the allocation and initialization of the gauge,
+              Dirac and Weyl fields on the known block grids.
+
+check3        Check of assign_ud2ubgr() and assign_ud2udblk().
+
+check4        Check of assign_swd2swbgr() and assign_swd2swdblk().
+
+check5        Check of assign_s2sblk(),...,assign_sdblk2sd().
+
+The programs check1, check3 and check4 accept the option -bc <type> that
+allows the type of boundary condition to be chosen at runtime. When the option
+is not set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of the other programs.

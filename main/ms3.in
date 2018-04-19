@@ -1,0 +1,25 @@
+
+[Run name]
+name         Snoopy137
+
+[Directories]
+log_dir      ../data/ms3/log
+dat_dir      ../data/ms3/dat
+loc_dir      /ndata/qcd1/cnfg
+cnfg_dir     /data/qcd1/cnfg
+
+[Configurations]
+first        1
+last         4
+step         1
+
+[Boundary conditions]
+type         2
+phi          0.12 -0.56
+phi'         0.92 0.76
+
+[Wilson flow]
+integrator   RK3
+eps          2.0e-2
+nstep        100
+dnms         10

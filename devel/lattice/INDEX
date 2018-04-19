@@ -1,0 +1,17 @@
+
+Lattice geometry and boundary conditions.
+
+check1        Consistency checks on the global index arrays cpr,...,map.
+
+check2        Check of the programs set_bc() and check_bc().
+
+check3        Check of the programs bnd_s2zero() and bnd_sd2zero().
+
+Checks on the block geometry programs are included in the directory
+devel/block.
+
+The programs check2 and check3 accept the option -bc <type> that allows the
+type of boundary condition to be chosen at runtime. When the option is not
+set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of check1.

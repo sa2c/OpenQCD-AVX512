@@ -1,0 +1,34 @@
+
+MD force programs
+
+check1        Gauge and translation invariance of the gauge action
+
+check2        Gauge action of constant Abelian fields
+
+check3        Check of force0() and action0()
+
+check4        Check of sw_frc() and hop_frc()
+
+check5        Check and performance of the CG solver
+
+check6        Check of force1() and action1()
+
+check7        Check of force2() and action2()
+
+check8        Check and performance of the multi-shift CG solver
+
+check9        Check of force3() and action3()
+
+check10       Check of force4() and action4()
+
+check11       Check of force5() and action5()
+
+time1         Timing of plaq_frc(), sw_frc() and hop_frc()
+
+Except for check5 and check8, all programs accept the option -bc <type> that
+allows the type of boundary condition to be chosen at runtime. When the option
+is not set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of check5 and check8 (the
+boundary conditions are selected through the input parameter file in these
+cases).

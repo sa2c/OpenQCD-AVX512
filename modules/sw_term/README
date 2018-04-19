@@ -1,0 +1,105 @@
+
+********************************************************************************
+
+                       Sheikholeslami-Wohlert term
+
+********************************************************************************
+
+Computation and action of the Pauli term in the O(a) improved Wilson-Dirac
+operator. The check programs for the programs in the files pauli.c and
+pauli_dble.c are found in the devel/nompi/sw_term directory and those for
+all other programs in the devel/sw_term directory.
+
+
+Files
+-----
+
+pauli.c             Basic functions for single-precision Hermitian 6x6 matrices.
+
+pauli_dble.c        Basic functions for double-precision Hermitian 6x6 matrices.
+
+swflds.c            Allocation and initialization of the global SW fields.
+
+sw_term.c           Computation of the SW term.
+
+
+
+Include file
+------------
+
+The file sw_term.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above. The types
+pauli, pauli_dble and u3_alg_dble are defined in su3.h.
+
+
+List of functions
+-----------------
+
+void mul_pauli(float mu,pauli *m,weyl *s,weyl *r)
+  Multiplies the Weyl spinor s by the matrix m+i*mu and assigns
+  the result to the Weyl spinor r. The source spinor is overwritten
+  if r=s and otherwise left unchanged.
+
+void mul_pauli2(float mu,pauli *m,spinor *s,spinor *r)
+  Multiplies the spinor s by the matrix m+i*mu*gamma_5 and assigns
+  the result to the spinor r. The source spinor is overwritten
+  if r=s and otherwise left unchanged.
+
+void assign_pauli(int vol,pauli_dble *md,pauli *m)
+  Assigns the field md[vol] of double-precision matrices to the field
+  m[vol] of single-precision matrices.
+
+void apply_sw(int vol,float mu,pauli *m,spinor *s,spinor *r)
+  Applies the matrix field m[2*vol]+i*mu*gamma_5 to the spinor field
+  s[vol] and assigns the result to the field r[vol]. The source field
+  is overwritten if r=s and otherwise left unchanged (the arrays may
+  not overlap in this case).
+
+void mul_pauli_dble(double mu,pauli_dble *m,weyl_dble *s,weyl_dble *r)
+  Multiplies the Weyl spinor s by the matrix m+i*mu and assigns the
+  result to the Weyl spinor r. The source spinor is overwritten if
+  r=s and otherwise left unchanged.
+
+int inv_pauli_dble(double mu,pauli_dble *m,pauli_dble *im)
+  Assigns the Hermitian part of the matrix (m+i*mu)^(-1) to im. The
+  matrix is overwritten if im=m and otherwise left unchanged. On
+  exit the program returns 0 or 1 depending on whether the inversion
+  was safe or not (in which case the calculated matrix is unusable).
+
+complex_dble det_pauli_dble(double mu,pauli_dble *m)
+  Returns the determinant of the matrix m+i*mu.
+
+void apply_sw_dble(int vol,double mu,pauli_dble *m,spinor_dble *s,
+                   spinor_dble *r)
+  Applies the matrix field m[2*vol]+i*mu*gamma_5 to the spinor field
+  s[vol] and assigns the result to the field r[vol]. The source field
+  is overwritten if r=s and otherwise left unchanged (the arrays may
+  not overlap in this case).
+
+int apply_swinv_dble(int vol,double mu,pauli_dble *m,spinor_dble *s,
+                     spinor_dble *r)
+  Applies the inverse of the matrix field m[2*vol]+i*mu*gamma_5 to the
+  spinor field s[vol] and assigns the result to the field r[vol]. The
+  source field is overwritten if r=s and otherwise left unchanged (the
+  arrays may not overlap in this case). On exit the program returns 0
+  or 1 depending on whether the matrix inversions were safe or not (in
+  the latter case, the output field is unusable).
+
+pauli *swfld(void)
+  Returns the base address of the single-precision SW field. If it
+  is not already allocated, the field is allocated and initialized
+  to unity.
+
+pauli_dble *swdfld(void)
+  Returns the base address of the double-precision SW field. If it
+  is not already allocated, the field is allocated and initialized
+  to unity.
+
+void assign_swd2sw(void)
+  Assigns the double-precision to the single-precision SW field.
+
+int sw_term(ptset_t set)
+  Computes the SW term for the current double-precision gauge field
+  and assigns the matrix to the global double-precision SW field. The
+  matrices on the specified point set are then inverted and 0 or 1
+  is returned depending on whether all inversions were safe or not.

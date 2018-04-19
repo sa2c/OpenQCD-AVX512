@@ -1,0 +1,12 @@
+
+Basic utility programs for spinor fields
+
+check1        Check of the programs in the module sflds.c.
+
+check2        Check of the communication programs in scom.c and sdcom.c.
+
+The program check2 accepts the option -bc <type> that allows the type of
+boundary condition to be chosen at runtime. When the option is not set, open
+boundary conditions are assumed.
+
+The option may be set but has no effect in the case of check1.

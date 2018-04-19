@@ -1,0 +1,16 @@
+
+Linear algebra routines
+
+check1        Check of the programs in the module liealg.c
+
+check2        Checks on the programs in the module salg.c
+
+check3        Checks on the programs in the module salg_dble.c
+
+check4        Checks on the programs in the module valg.c
+
+check5        Checks on the programs in the module valg_dble.c
+
+time1         Timing of the salg programs
+
+time2         Timing of the salg_dble programs

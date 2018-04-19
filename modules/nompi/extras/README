@@ -1,0 +1,151 @@
+
+********************************************************************************
+
+     Special functions and general purpose programs related to statistics
+
+********************************************************************************
+
+See the notes chebyshev.ps and stat_fcts.ps for information on the
+modules chebyshev.c, ks_test.c and pchi_square.c
+
+
+Files
+-----
+
+chebyshev.c    Chebyshev approximation and integration of real functions
+
+fsolve.c       General purpose equation solver and function minimizers
+
+i0m.c          Computation of the modified Bessel function I_0(x)
+
+ks_test.c      Kolmogorov-Smirnov test
+
+pchi_square.c  General Chi^2 distribution
+
+stat.c         Collection of simple statistical analysis programs
+
+
+Include file
+------------
+
+The file extras.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+int cheby_fit(double a,double b,double (*f)(double x),
+              int nmax,double eps,double c[])
+  Computes the coefficients c[0],...,c[n], with n<=nmax being the 
+  value returned by the program and eps the desired absolute precision 
+  of the approximation
+
+double cheby_val(double a,double b,int n,double c[],double x)
+  Computes the value of the Chebyshev approximation at x, assuming
+  the coefficients c_k are stored in the array c[0],...,c[n]
+
+double cheby_int(double a,double b,double (*f)(double x),
+                int nmax,double eps)
+  Computes the definite integral of f(x) in the range a<=x<=b to an
+  absolute precision eps, using Chebyshev polynomials of degree n<=nmax
+
+double inverse_fct(double y,double x1,double x2,double (*f)(double x),
+                   double omega1,double omega2)   
+  Finds a solution x of the equation f(x)=y in the interval [x1,x2]
+  to an absolute precision omega1 or a relative precision omega2
+  (whichever is reached first). The points x1,x2 must be such that
+  f(x1) and f(x2) have different sign 
+
+double minimize_fct(double x0,double x1,double x2,double (*f)(double x),
+                    double omega1,double omega2)
+  Finds a local minimum x of f(x) in the interval [x0,x2] to an
+  absolute precision omega1 or a relative precision omega2 (whichever
+  is reached first). The point x1 is taken as an initial guess of the
+  position of the minimum (x0<x1<x2)
+
+void powell(int n,double *x0,double *x1,double *x2,
+            double (*f)(int n,double *x),int imx,
+            double omega1,double omega2,double *xmin,int *status)
+  Finds a local minimum xmin of a given function f that depends on
+  on a vector x[0],..,x[n-1] of n variables. The minimum is searched
+  for in the hypercube x0[j]<x[j]<x2[j], j=0,..,n-1, starting from
+  x=x1 (which must be in the hypercube). At most imx iterations of
+  Powell's direction set method are applied to find the minimum.
+   The program terminates if the coordinates of the position xmin
+  changed by less than omega1 or less than omega2*xmin in the last
+  iteration. On output status reports the total number of iterations
+  that were required or a negative number if the program failed (-1
+  if the algorithm did not converge, -2 if the minimum could not be
+  bracketed)
+
+double i0m(double x)
+  This program returns exp(-x)*I_0(x) to machine precision
+  for x>=0. An error occurs if x is negative
+
+void ks_test(int n,double f[],double *pkp,double *pkm)
+  For a given array f[0],f[1],...,f[n-1], the program calculates
+  the Kolmogorov-Smirnov statistics K_n^{+}=*pkp and K_n^{-}=*pkm
+
+void ks_prob(int n,double kp,double km,double *pp,double *pm)
+  Computes the approximate probabilites *pp and *pm for the Kolmogorov-
+  Smirnov statistics K_n^{+} and K_n^{-} to be less than or equal to 
+  kp and km respectively (eq.(4) in the notes).
+
+double pchi_square(double chi_square,int nu)
+  For chi_square>=0 and nu=1,2,...,1000 the program returns an 
+  approximation for P(chi_square|nu) which deviates from the exact
+  distribution by less than 10^(-8) [10^(-9) if nu=1]
+
+double average(int n,double *a)
+  Returns the average of the array elements a[0],..,a[n-1]
+
+double sigma0(int n,double *a)
+  Returns the naive statistical error of the average of the array
+  elements a[0],..,a[n-1]
+
+double auto_corr(int n,double *a,int tmax,double *g)
+  Computes the normalized autocorrelation function g[t] at time
+  separations t=0,..,tmax-1 of the sequence a[0],..,a[n-1] and 
+  returns the value of the (unnormalized) autocorrelation function
+  at t=0. The inequality tmax<=n must be respected
+
+void sigma_auto_corr(int n,double *a,int tmax,int lambda,double *eg)
+  Computes the statistical error eg[t] at time t=0,..,tmax-1 of the 
+  normalized autocorrelation function of the sequence a[0],..,a[n-1].
+  The choice of the summation cutoff lambda is not critical, but it
+  should be set to a value not smaller than a few times the integrated
+  autocorrelation time of the sequence (see the notes below). The
+  inequality 2*tmax+lambda-1<=n must be respected
+
+double tauint(int n,double *a,int tmax,int lambda,int *w,double *sigma)
+  Returns an estimate of the integrated autocorrelation time of the
+  sequence a[0],..,a[n-1]. On exit the summation window determined by
+  the program is assigned to *w and an estimate of the statistical 
+  error on the calculated autocorrelation time is assigned to *sigma.
+  The parameter tmax sets an upper limit on the summation window and
+  the summation cutoff lambda should be set to a value not smaller than
+  a few times the integrated autocorrelation time (see the notes below).
+  The inequality 2*tmax+lambda-1<=n must be respected
+
+double print_auto(int n,double *a)
+  Prints a table of the approximate integrated auto-correlation time
+  tau(w)=1/2+sum_{t=1}^w g[t] and the associated statistical error
+  sigma(w)=sigma0*sqrt{2*tau(w)}, where g[t] denotes the normalized
+  autocorrelation function of the sequence a[0],..,a[n-1]. On exit 
+  the program returns the average of the array elements
+
+double jack_err(int nx,int n,double **a,double (*f)(int nx,double *x),
+                int bmax,double *sig)
+  Computes the standard estimate of an arbitrary function f() of
+  nx primary stochastic variables x[k], k=0,..,nx-1, for a given 
+  sequence a[k][0],..,a[k][n-1] of values of these. The associated
+  jackknife errors sig[bs-1] for bin size bs=1,..,bmax are also
+  computed. On exit the program returns the standard estimate of
+  the function f()
+
+double print_jack(int nx,int n,double **a,double (*f)(int nx,double *x))
+  Prints a table of the jackknife errors calculated by the program
+  jack_err(), together with the estimated integrated autocorrelation
+  times, as a function of the bin size bs. On exit the program returns
+  the standard estimate of the function f()

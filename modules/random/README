@@ -1,0 +1,102 @@
+
+********************************************************************************
+
+                        Random number generation
+
+********************************************************************************
+
+
+The basic random number generator used here is referred to as "ranlux"
+See the documentation in the doc directory. Check programs are found
+in the directory devel/nompi/random.
+
+
+Files
+-----
+
+gauss.c        Generation of single- and double-precision Gaussian
+               random numbers 
+
+ranlux.c       Initialization of ranlxs and ranlxd
+
+ranlxd.c       Double-precision generator plus utility programs
+
+ranlxs.c       Single-precision generator plus utility programs
+
+
+
+Include file
+------------
+
+The file random.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void gauss(float r[],int n)
+  Generates n single-precision Gaussian random numbers x with distribution
+  proportional to exp(-x^2) and assigns them to r[0],..,r[n-1]
+
+void gauss_dble(double rd[],int n)
+  Generates n double-precision Gaussian random numbers x with distribution
+  proportional to exp(-x^2) and assigns them to rd[0],..,rd[n-1]
+
+void start_ranlux(int level,int seed)
+  Initializes the random number generators ranlxs and ranlxd on all
+  processes in different ways. The luxury level should be 0 (recommended)
+  or 1 (exceptional) and the seed can be any positive integer less than
+  or equal to INT_MAX/NPROC. An error occurs if the seed is not in this
+  range.
+
+void export_ranlux(int tag,char *out)
+  Writes the tag, the lattice sizes, the process grid and the state of
+  the random number generators ranlxs and ranlxd to the file "out" from
+  process 0. The state of the generators are collected from all processes
+  and written to the file in the order specified in the notes.
+
+int import_ranlux(char *in)
+  Reads the state of the random number generators ranlxs and ranlxd from
+  the file "in". The file is read from process 0 only and the data on
+  the file are expected in the form written by export_ranlux(). An error
+  occurs if the lattice sizes and process grid read from the file do not
+  coincide with the actual values of these parameters. The program then
+  resets the generators on all processes to the states read from the file.
+  The value returned is the tag read from the file.
+
+void ranlxd(double r[],int n)
+  Computes the next n double-precision random numbers and
+  assigns them to the elements r[0],...,r[n-1] of the array r[]
+
+void rlxd_init(int level,int seed)
+  Initialization of the generator
+
+int rlxd_size(void)
+  Returns the number of integers required to save the state of
+  the generator
+
+void rlxd_get(int state[])
+  Extracts the current state of the generator and stores the
+  information in the array state[N] where N>=rlxd_size()
+
+void rlxd_reset(int state[])
+  Resets the generator to the state defined by the array state[N]
+
+void ranlxs(float r[],int n)
+  Computes the next n single-precision random numbers and
+  assigns them to the elements r[0],...,r[n-1] of the array r[]
+
+void rlxs_init(int level,int seed)
+  Initialization of the generator
+
+int rlxs_size(void)
+  Returns the number of integers required to save the state of
+  the generator
+
+void rlxs_get(int state[])
+  Extracts the current state of the generator and stores the
+  information in the array state[N] where N>=rlxs_size()
+
+void rlxs_reset(int state[])
+  Resets the generator to the state defined by the array state[N]

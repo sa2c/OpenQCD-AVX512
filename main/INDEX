@@ -1,0 +1,28 @@
+
+********************************************************************************
+
+                           Simulations of QCD
+
+********************************************************************************
+
+Simulation programs
+
+qcd1        HMC simulation program for QCD.
+
+ym1         HMC simulation program for the (pure) SU(3) gauge theory.
+
+
+Measurement programs
+
+ms1         Measurement of reweighting factors.
+
+ms2         Computation of the spectral range of the hermitian
+            Dirac operator.
+
+ms3         Computation of Wilson-flow observables.
+
+ms4         Computation of quark propagators.
+
+
+Some examples of valid input parameter files can be found in the directory
+./examples.

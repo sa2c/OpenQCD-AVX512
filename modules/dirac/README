@@ -1,0 +1,136 @@
+
+********************************************************************************
+
+                           Lattice Dirac Operator
+
+********************************************************************************
+
+
+Files
+-----
+
+Dw_bnd.c            Block boundary part of the Wilson-Dirac operator.
+
+Dw.c                Application of the O(a)-improved Wilson-Dirac operator Dw
+                    (single-precision programs).
+
+Dw_dble.c           Application of the O(a)-improved Wilson-Dirac operator Dw
+                    (double-precision programs).
+
+
+Include file
+------------
+
+The file dirac.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void Dw_bnd(blk_grid_t grid,int n,int k,int l)
+  Applies the boundary part of the Wilson-Dirac operator to the field
+  b.s[k] on the n'th block b of the specified block grid and assigns
+  the result to the field bb.w[l] on the boundary bb of the block.
+
+void Dw(float mu,spinor *s,spinor *r)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D+i*mu*gamma_5*1e or D+i*mu*gamma_5 to the field
+  s and assigns the result to the field r.
+
+void Dwee(float mu,spinor *s,spinor *r)
+  Applies D_ee+i*mu*gamma_5 to the field s on the even points of the
+  lattice and assigns the result to the field r.
+
+void Dwoo(float mu,spinor *s,spinor *r)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D_oo or D_oo+i*mu*gamma_5 to the field s on the
+  odd points of the lattice and assigns the result to the field r.
+
+void Dwoe(spinor *s,spinor *r)
+  Applies D_oe to the field s and assigns the result to the field r.
+
+void Dweo(spinor *s,spinor *r)
+  Applies D_eo to the field s and *subtracts* the result from the
+  field r.
+
+void Dwhat(float mu,spinor *s,spinor *r)
+  Applies Dhat+i*mu*gamma_5 to the field s and assigns the result to
+  the field r.
+
+void Dw_blk(blk_grid_t grid,int n,float mu,int k,int l)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D+i*mu*gamma_5*1e or D+i*mu*gamma_5 to the field
+  b.s[k] and assigns the result to the field b.s[l].
+
+void Dwee_blk(blk_grid_t grid,int n,float mu,int k,int l)
+  Applies D_ee+i*mu*gamma_5 to the field b.s[k] on the even points and
+  assigns the result to the field b.s[l].
+
+void Dwoo_blk(blk_grid_t grid,int n,float mu,int k,int l)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D_oo or D_oo+i*mu*gamma_5 to the field b.s[k] on
+  the odd points and assigns the result to the field b.s[l].
+
+void Dwoe_blk(blk_grid_t grid,int n,int k,int l)
+  Applies D_oe to the field b.s[k] and assigns the result to the field
+  b.s[l].
+
+void Dweo_blk(blk_grid_t grid,int n,int k,int l)
+  Applies D_eo to the field b.s[k] and *subtracts* the result from the
+  field b.s[l].
+
+void Dwhat_blk(blk_grid_t grid,int n,float mu,int k,int l)
+  Applies Dhat+i*mu*gamma_5 to the field b.s[k] and assigns the result
+  to the field b.s[l].
+
+void Dw_dble(double mu,spinor_dble *s,spinor_dble *r)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D+i*mu*gamma_5*1e or D+i*mu*gamma_5 to the field
+  s and assigns the result to the field r.
+
+void Dwee_dble(double mu,spinor_dble *s,spinor_dble *r)
+  Applies D_ee+i*mu*gamma_5 to the field s on the even points of the
+  lattice and assigns the result to the field r.
+
+void Dwoo_dble(double mu,spinor_dble *s,spinor_dble *r)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D_oo or D_oo+i*mu*gamma_5 to the field s on the
+  odd points of the lattice and assigns the result to the field r.
+
+void Dwoe_dble(spinor_dble *s,spinor_dble *r)
+  Applies D_oe to the field s and assigns the result to the field r.
+
+void Dweo_dble(spinor_dble *s,spinor_dble *r)
+  Applies D_eo to the field s and *subtracts* the result from the
+  field r.
+
+void Dwhat_dble(double mu,spinor_dble *s,spinor_dble *r)
+  Applies Dhat+i*mu*gamma_5 to the field s and assigns the result to
+  the field r.
+
+void Dw_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D+i*mu*gamma_5*1e or D+i*mu*gamma_5 to the field
+  b.sd[k] and assigns the result to the field b.sd[l].
+
+void Dwee_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
+  Applies D_ee+i*mu*gamma_5 to the field b.sd[k] on the even points and
+  assigns the result to the field b.sd[l].
+
+void Dwoo_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
+  Depending on whether the twisted-mass flag is set or not, this
+  program applies D_oo or D_oo+i*mu*gamma_5 to the field b.sd[k] on
+  the odd points and assigns the result to the field b.sd[l].
+
+void Dwoe_blk_dble(blk_grid_t grid,int n,int k,int l)
+  Applies D_oe to the field b.sd[k] and assigns the result to the field
+  b.sd[l].
+
+void Dweo_blk_dble(blk_grid_t grid,int n,int k,int l)
+  Applies D_eo to the field b.sd[k] and *subtracts* the result from the
+  field b.sd[l].
+
+void Dwhat_blk_dble(blk_grid_t grid,int n,double mu,int k,int l)
+  Applies Dhat+i*mu*gamma_5 to the field b.sd[k] and assigns the result
+  to the field b.sd[l].

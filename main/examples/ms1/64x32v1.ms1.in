@@ -1,0 +1,92 @@
+
+################################################################################
+#
+# 2+1 flavour QCD, mixed boundary conditions, second kind of light-quark
+# twisted-mass reweighting, even-odd preconditioning and decomposition of the
+# light-quark reweighting factor in 2 factors.
+#
+################################################################################
+
+[Run name]
+name         64x32v1
+
+[Directories]
+log_dir      /data/openQCD/ms1/log
+dat_dir      /data/openQCD/ms1/dat
+loc_dir      /ndata/openQCD/cnfg
+cnfg_dir     /data/openQCD/cnfg
+
+[Configurations]
+first        30
+last         100
+step         1
+nrw          2
+
+[Random number generator]
+level        0
+seed         126819
+
+[Lattice parameters]
+kappa        0.13774 0.1366
+csw          1.715
+
+[Boundary conditions]
+type         2
+phi'         0.0 0.0
+cG           1.0
+cG'          1.0
+cF           1.0
+cF'          1.0
+theta        0.5 0.5 0.5
+
+[Reweighting factor 0]
+rwfact       RWTM2_EO
+im0          0
+mu           0.001 0.002
+isp          0
+nsrc         24
+
+[Reweighting factor 1]
+rwfact       RWRAT
+im0          1
+irp          0
+np           6 3
+isp          1 0
+nsrc         1
+
+[Rational 0]
+degree       9
+range        0.03 6.1
+
+[Solver 0]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          256
+res          1.0e-11
+
+[Solver 1]
+solver       MSCG
+nmx          2048
+res          1.0e-11
+
+[SAP]
+bs           4 4 4 4
+
+[Deflation subspace]
+bs           4 4 4 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.13774
+mu           0.005
+ninv         10
+nmr          4
+ncy          4
+
+[Deflation projection]
+nkv          24
+nmx          128
+res          1.0e-2

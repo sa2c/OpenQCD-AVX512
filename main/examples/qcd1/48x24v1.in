@@ -1,0 +1,167 @@
+
+################################################################################
+#
+# Two-flavour QCD with Wilson plaquette action, open boundary conditions and
+# twisted-mass reweighting of the first kind.
+#
+################################################################################
+
+[Run name]
+name         48x24v1
+
+[Directories]
+log_dir      /data/openQCD/qcd1/log
+dat_dir      /data/openQCD/qcd1/dat
+loc_dir      /ndata/openQCD/cnfg
+cnfg_dir     /data/openQCD/cnfg
+
+[Lattice parameters]
+beta         5.3
+c0           1.0
+kappa        0.13625
+csw          1.90952
+
+[Boundary conditions]
+type         0
+cG           1.0
+cF           1.0
+theta        0.0 0.0 0.0
+
+[Random number generator]
+level        0
+seed         787412
+
+[HMC parameters]
+actions      0 1 2 3 4
+npf          4
+mu           0.003 0.01 0.1 1.0
+nlv          2
+tau          2.0
+
+[MD trajectories]
+nth          0
+ntr          5000
+dtr_log      1
+dtr_ms       8
+dtr_cnfg     8
+
+[Level 0]
+integrator   OMF4
+nstep        1
+forces       0
+
+[Level 1]
+integrator   OMF4
+nstep        10
+forces       1 2 3 4
+
+[Action 0]
+action       ACG
+
+[Action 1]
+action       ACF_TM1
+ipf          0
+im0          0
+imu          3
+isp          0
+
+[Action 2]
+action       ACF_TM2
+ipf          1
+im0          0
+imu          2 3
+isp          1 0
+
+[Action 3]
+action       ACF_TM2
+ipf          2
+im0          0
+imu          1 2
+isp          1 1
+
+[Action 4]
+action       ACF_TM2
+ipf          3
+im0          0
+imu          0 1
+isp          1 1
+
+[Force 0]
+force        FRG
+
+[Force 1]
+force        FRF_TM1
+isp          2
+ncr          3
+
+[Force 2]
+force        FRF_TM2
+isp          3
+ncr          3
+
+[Force 3]
+force        FRF_TM2
+isp          3
+ncr          3
+
+[Force 4]
+force        FRF_TM2
+isp          3
+ncr          3
+
+[Solver 0]
+solver       CGNE
+nmx          512
+res          1.0e-11
+
+[Solver 1]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          128
+res          1.0e-11
+
+[Solver 2]
+solver       CGNE
+nmx          512
+res          1.0e-10
+
+[Solver 3]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          128
+res          1.0e-10
+
+[SAP]
+bs           4 6 6 4
+
+[Deflation subspace]
+bs           4 6 6 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.13635
+mu           0.001
+ninv         9
+nmr          4
+ncy          4
+
+[Deflation projection]
+nkv          16
+nmx          128
+res          1.0e-2
+
+[Deflation update scheme]
+dtau         0.09
+nsm          1
+
+[Wilson flow]
+integrator   RK3
+eps          2.0e-2
+nstep        400
+dnms         2

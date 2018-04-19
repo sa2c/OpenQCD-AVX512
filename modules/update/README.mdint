@@ -1,0 +1,125 @@
+
+********************************************************************************
+
+                       Molecular-dynamics integration
+
+********************************************************************************
+
+The numerical integration of the molecular-dynamics equations makes use of a
+hierarchical integrator that can be specified, to a large extent, by the user.
+Here the structure of the integrator is explained. For a description of the
+available actions and forces, see forces/README.forces.
+
+
+Elementary integrators
+----------------------
+
+Currently three elementary integration schemes are supported, the leapfrog,
+the 2nd order Omelyan-Mryglod-Folk (OMF) and a 4th order OMF integrator. They
+are labeled LPFR, OMF2 and OMF4, respectively.
+
+All these integrators consist in a sequence of update steps 
+
+ TP(eps,F): P,U -> P-eps*F,U
+
+ TU(eps):   P,U -> P,exp(eps*P)*U
+
+for the momentum field P and the gauge field U, where eps denotes the
+integration step size and F the force field that is integrated. Explicitly,
+
+ LPFR(eps,F) = TP(0.5*eps,F)*
+               TU(eps)*
+               TP(0.5*eps,F)
+
+ OMF2(eps,F) = TP(r0*eps,F)*
+               TU(eps/2)*
+               TP((1-2*r0)*eps,F)*
+               TU(eps/2)*
+               TP(r0*eps,F)
+
+ OMF4(eps,F) = TP(r1*eps,F)*
+               TU(r2*eps)*
+               TP(r3*eps,F)*
+               TU(r4*eps)*
+               TP((1/2-r1-r3)*eps,F)*
+               TU((1-2*(r2+r4))*eps)*
+               TP((1/2-r1-r3)*eps,F)*
+               TU(r4*eps)*
+               TP(r3*eps,F)*
+               TU(r2*eps)*
+               TP(r1*eps,F)
+
+where r0 is a tunable parameter, usually set to a value in the range from 1/6
+to 0.2, while
+
+  r1=0.08398315262876693
+  r2=0.2539785108410595 
+  r3=0.6822365335719091 
+  r4=-0.03230286765269967
+
+are already fine-tuned values (in the literature, the parameter r0 is often
+denoted by lambda, and this convention is also adopted by the parameter data
+base in flags/mdint_parms.c).
+
+
+Hierarchical integrators
+------------------------
+
+If the force F=F0+F1 is a sum of two contributions, one may integrate the two
+parts with different integration step sizes. This can be achieved using an
+integrator with two levels. At the innermost level, the force F0 is integrated
+using a power of an elementary integrator such as
+
+  I0(n0*eps,F0) = OMF4(eps,F0)*...*OMF2(eps,F0)    (n0 factors).
+
+The two-level integrator is then constructed starting from a power of an
+elementary integrator for F1, with step size n0*eps, and by replacing all
+update steps TU(dt) in that integrator by I0(dt,F0). An example of such an
+integrator is
+
+  I1(n1*n0*eps,F1,F0) = OMF2(n0*eps)|_{TU->I0}*... (n1 factors).
+
+The MD equations are integrated from time t to time t+n1*n0*eps in this case.
+
+Hierarchical integrators with any number of levels are obtained in the same
+way by proceeding from the lowest to the higher levels one by one. An
+integrator of this kind is specified by
+
+  tau         Trajectory length
+  nlv         Number of levels
+
+and, for each level,
+
+  integrator  Elementary integrator (LPFR, OMF2 or OMF4)
+  lambda      Parameter of the 2nd order OMF integrator
+  nstep       Power of the elementary integrator
+  nfr         Number of forces integrated at this level
+  ifr         Indices of these forces
+ 
+The force indices refer to the force data base (see forces/README.forces). The
+step sizes need not be given, since these can be inferred from the the data
+provided.
+
+
+Parameter data base
+-------------------
+
+The data characterizing a hierarchical integrator are administered by the
+parameter data base in the directory modules/flags. The data base consists
+of various components that are managed by the following modules:
+
+hmc_parms.c        Basic HMC parameters
+mdint_parms.c      Descriptions of the integrator levels
+action_parms.c     Action parameter sets
+force_parms.c      Force parameter sets
+solver_parms.c     Solver parameter sets
+
+In the last three cases, the different parameter sets are labeled by an
+integer index. Detailed descriptions of the available parameters are given at
+the top of these modules.
+
+In a main program, the desired parameter sets must first be entered into the
+data base. They can then be referred to by their index (where appropriate) and
+be easily retrieved in any subprogram. See main/qcd1.in for an example of a
+parameter file that contains a complete specification of an MD integrator.
+

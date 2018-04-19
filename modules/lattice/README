@@ -1,0 +1,117 @@
+
+********************************************************************************
+
+                          Lattice and block geometry
+
+********************************************************************************
+
+
+Files
+-----
+
+bcnds.c        Programs related to the boundary conditions in the time
+               direction.
+
+ftidx.c        Labeling of the field tensor components on the faces of
+               the local lattice.
+
+geometry.c     Programs related to the lattice and block geometry.
+
+uidx.c         Labeling of the link variables on the faces of the local
+               lattice.
+
+
+Include file
+------------
+
+The file lattice.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+int *bnd_lks(int *n)
+  Returns the starting address of an array of length n whose elements
+  are the integer offsets of the time-like link variables on the local
+  lattice at global time NPROC0*L0-1.
+
+int *bnd_pts(int *n)
+  Returns the starting address of an array of length n whose elements
+  are the indices of the points on the local lattice at global time 0
+  and T (in the case of open boundary conditions). The ordering of the
+  indices is such that the n/2 even points come first.
+
+void set_bc(void)
+  Sets the double-precision link variables at time 0 and T to the
+  values required by the chosen boundary conditions (see the notes).
+
+int check_bc(double tol)
+  Returns 1 if the double-precision gauge field has the proper boundary
+  values and if no active link variables are equal to zero. Otherwise
+  the program returns 0. The parameter tol>=0.0 sets an upper bound on
+  the tolerated difference of the boundary values of the gauge field from
+  the expected ones in the case of SF and open-SF boundary conditions.
+
+void bnd_s2zero(ptset_t set,spinor *s)
+  Sets the components of the single-precision spinor field s on the
+  specified set of points at global time 0 and T (in the case of
+  open boundary conditions) to zero.
+
+void bnd_sd2zero(ptset_t set,spinor_dble *sd)
+  Sets the components of the double-precision spinor field sd on the
+  specified set of points at global time 0 and T (in the case of
+  open boundary conditions) to zero.
+
+ftidx_t *ftidx(void)
+  Returns an array idx[6] of ftidx_t structures containing the offsets
+  of the field tensor components on the boundaries of the local lattice
+  (see the file README.ftidx).
+
+void plaq_ftidx(int n,int ix,int *ip)
+  Calculates the offsets ip[4] of the field tensor components at the
+  corners of the (mu,nu)-plaquette at the point in the local lattice
+  with label ix. The indices (mu,nu) are determined by the parameter
+  n=0,..,5 (see the notes).
+
+int ipr_global(int n[])
+  This program returns the number of the process with cartesian
+  coordinates n[0],..,n[3] in the process grid
+
+void ipt_global(int x[],int *ip,int *ix)
+  Given the coordinates x[0],..,x[3] of a point on the full lattice,
+  this program determines the number ip of the process that operates
+  on the corresponding local lattice and the associated local point
+  index ix (0<=ix<VOLUME)
+
+int global_time(int ix)
+  Returns the (global) time coordinate of the point with label ix
+
+void geometry(void)
+  Computation of the global arrays cpr,npr describing the process
+  grid and the index arrays ipt,iup,idn and map
+
+void blk_geometry(block_t *b)
+  Computes the index arrays b.ipt,b.iup and b.idn that describe the
+  geometry of the block b.
+
+void blk_imbed(block_t *b)
+  Computes the index arrays b.imb and b.ibp that describe the
+  embedding of the block b in the full lattice.
+
+void bnd_geometry(block_t *b)
+  Computes the index arrays bb.ipp and bb.map that describe the
+  geometry of the exterior boundaries bb of the block b.
+
+void bnd_imbed(block_t *b)
+  Computes the index arrays bb.imb that describe the embedding
+  of the exterior boundaries bb of the block b in the full lattice.
+
+uidx_t *uidx(void)
+  Returns an array idx[4] of uidx_t structures containing the offsets
+  of the link variables at the faces of the local lattice.
+
+void plaq_uidx(int n,int ix,int *ip)
+  Calculates the offsets ip[4] of the links in the (mu,nu)-plaquette at
+  the point on the local lattice with label ix. The indices (mu,nu) are
+  determined by the parameter n=0,..,5.

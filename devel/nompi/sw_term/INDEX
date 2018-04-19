@@ -1,0 +1,23 @@
+
+Programs for 6x6 Hermitian matrices
+
+check1        Check of mul_pauli() and mul_pauli2()
+
+check2        Check of mul_pauli_dble()
+
+check3        Check of assign_pauli() and apply_sw()
+
+check4        Check of apply_sw_dble() and apply_swinv_dble()
+
+check5        Check of inv_pauli_dble()
+
+check6        Accuracy of inv_pauli_dble()
+
+check7        Check of det_pauli_dble()
+
+time1         Timing of mul_pauli() and mul_pauli2()
+
+time2         Timing of mul_pauli_dble
+
+time3         Timing of inv_pauli_dble and det_pauli_dble
+

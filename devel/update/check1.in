@@ -1,0 +1,33 @@
+
+[HMC parameters]
+nlv          3
+tau          1.1
+
+[Level 0]
+integrator   LPFR
+nstep        1
+forces       0
+
+[Level 1]
+integrator   OMF4
+nstep        1
+forces       1 2
+
+[Level 2]
+integrator   OMF2
+lambda       0.1666667
+nstep        4
+forces       3
+
+[Force 0]
+force        FRG
+
+[Force 1]
+force        FRF_TM1
+
+[Force 2]
+force        FRF_TM2
+
+[Force 3]
+force        FRF_TM2
+

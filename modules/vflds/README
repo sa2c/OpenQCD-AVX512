@@ -1,0 +1,107 @@
+
+********************************************************************************
+
+            Allocation and initialization of the global vector fields
+
+********************************************************************************
+
+
+Files
+-----
+
+vcom.c         Communication functions for the global single-precision
+               vector fields.
+
+vdcom.c        Communication functions for the global double-precision
+               vector fields.
+
+vflds.c        Allocation and initialization of the global vector fields
+               related to the deflation subspace.
+
+vinit.c        Generic initialization and assignment programs for complex
+               single- and double-precision fields.
+
+
+Include file
+------------
+
+The file vflds.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void cpv_int_bnd(complex *v)
+  Copies the components of the field v on the interior boundary of
+  the local block lattice to the corresponding field components at
+  the exterior boundaries of the block lattices on the neighbouring
+  MPI processes.
+
+void cpv_ext_bnd(complex *v)
+  *Adds* the components of the field v on the exterior boundary of
+  the local block lattice to the corresponding field components on
+  the interior boundaries of the block lattices on the neighbouring
+  MPI processes.
+
+void cpvd_int_bnd(complex_dble *vd)
+  Copies the components of the field vd on the interior boundary of
+  the local block lattice to the corresponding field components at
+  the exterior boundaries of the block lattices on the neighbouring
+  MPI processes.
+
+void cpvd_ext_bnd(complex_dble *vd)
+  *Adds* the components of the field v on the exterior boundary of
+  the local block lattice to the corresponding field components on
+  the interior boundaries of the block lattices on the neighbouring
+  MPI processes.
+
+complex **vflds(void)
+  Returns the base address of the global single-precision vector fields
+  (see the notes). The fields are allocated and initialized to zero if
+  they are not already allocated.
+
+complex_dble **vdflds(void)
+  Returns the base address of the global double-precision vector fields
+  (see the notes). The fields are allocated and initialized to zero if
+  they are not already allocated.
+
+void set_v2zero(int n,complex *v)
+  Sets the single-precision field v to zero.
+
+void set_vd2zero(int n,complex_dble *vd)
+  Sets the double-precision field vd to zero.
+
+void random_v(int n,complex *v,float sigma)
+  Initializes the components of the single-precision field v to
+  (complex) random values z with distribution proportional to
+  exp{-|z|^2/sigma^2}.
+
+void random_vd(int n,complex_dble *vd,double sigma)
+  Initializes the components of the double-precision field vd to
+  (complex) random values z with distribution proportional to
+  exp{-|z|^2/sigma^2}.
+
+void assign_v2v(int n,complex *v,complex *w)
+  Assigns the single-precision field v to the single-precision
+  field w.
+
+void assign_v2vd(int n,complex *v,complex_dble *wd)
+  Assigns the single-precision field v to the double-precision
+  field wd.
+
+void assign_vd2v(int n,complex_dble *vd,complex *w)
+  Assigns the double-precision field vd to the single-precision
+  field w.
+
+void assign_vd2vd(int n,complex_dble *vd,complex_dble *wd)
+  Assigns the double-precision field vd to the double-precision
+  field wd.
+
+void add_v2vd(int n,complex *v,complex_dble *wd)
+  Adds the single-precision field v to the double-precision field
+  wd.
+
+void diff_vd2v(int n,complex_dble *vd,complex_dble *wd,complex *w)
+  Assigns the difference vd-wd of the double-precision fields vd
+  and wd to the single-precision field w.

@@ -1,0 +1,19 @@
+
+At the top level, the openQCD package is structured as follows: 
+
+devel            Directories used for developing and testing the various 
+                 modules
+
+doc              Documentation files
+
+include          All include files. Typically there is one include file
+                 per directory in the modules directory
+
+main             Collection of main programs
+
+modules          Source code of all modules 
+
+In addition to the information provided by the notes in the doc directory,
+short descriptions of the program functionalities are included in the source
+directories and at the top of each program file. Further information is found
+in various README files (such as main/README.global).

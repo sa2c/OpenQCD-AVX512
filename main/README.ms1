@@ -1,0 +1,282 @@
+
+Main program ms1
+
+SYNTAX
+
+ms1 -i <filename> [-noexp] [-a [-norng]]
+
+
+DESCRIPTION
+
+This program reads gauge field configurations from disk and computes
+stochastic estimates of reweighting factors.
+
+
+COMMAND-LINE OPTIONS
+
+The program has only few options since most of the parameters are passed
+through an input file. The options are
+
+-i <filename>    Specifies the name of the input file. The name can be
+                 a fully qualified name or be specified relative to the
+                 working directory.
+
+-noexp           Field configurations are normally read in exported
+                 file format from the specified configuration directory.
+                 If this option is set, the configurations are instead
+                 expected in the imported file format on the local disks.
+
+-a               This option specifies that the run is a continuation of
+                 a previous run. All output data are appended to the
+                 previous output files.
+
+-norng           Continuation runs normally start from the saved state
+                 of the random number generators. This option specifies
+                 that the traditional initialization of the generators is
+                 to be used (see section RANDOM NUMBER GENERATOR below).
+                 NOTE: starting from the saved state is not possible if
+                 the process grid sizes NPROC0,..,NPROC3 are changed.
+
+
+INPUT PARAMETERS
+
+The lattice size and the process grid must be defined in the file global.h
+(see README.global). All other parameters are read from the input file. An
+example of a valid input file is ms1.in in this directory. The parameter
+values specified in this file are:
+
+[Run name]
+name         Snoopy137             # Run name = configuration base name
+
+[Directories]
+log_dir      ../data/ms1/log       # Log file directory
+dat_dir      ../data/ms1/dat       # Data file directory
+loc_dir      /ndata/qcd1/cnfg      # Local configuration directory
+cnfg_dir     /data/qcd1/cnfg       # Exported configuration directory
+
+[Configurations]
+first        1                     # No of the first configuration to consider
+last         4                     # No of the last configuration
+step         1                     # Configuration separation (last-first must
+                                   # be an integer multiple of step)
+nrw          2                     # Number of reweighting factors to be
+                                   # computed in this run
+
+[Random number generator]
+level        0                     # Ranlux level
+seed         73099                 # Ranlux seed
+
+[Lattice parameters]
+kappa        0.1300 0.1290         # List of sea-quark hopping parameters
+csw          1.234                 # Coefficient of the SW term in the
+                                   # Dirac operator
+
+[Boundary conditions]
+type         2                     # Type of boundary condition (0: open,
+                                   # 1: SF, 2: open-SF, 3: periodic)
+phi          0.12 -0.56            # Boundary values of the gauge field at
+                                   # time 0
+phi'         0.92 0.76             # Boundary values of the gauge field at
+                                   # time NPROC0*L0
+cF           0.95                  # Fermion action improvement coefficient
+                                   # at time 0
+cF'          0.90                  # Fermion action improvement coefficient
+                                   # at time NPROC0*L0
+theta        0.5 1.0 -0.5          # Angles specifying the phase-periodic bc
+                                   # of the quark fields in space
+
+Then follows a description of the reweighting factors labeled by an index that
+runs from 0 to nrw-1 (see flags/rw_parms.c). The available reweighting factors
+and associated parameter sections are described in the file doc/parms.pdf (see
+the top of the modules update/rwtm.c, update/rwtmeo.c and update/rwrat.c for
+further explanations).
+
+Reweighting factors of type RWRAT require a choice of a rational function. The
+solvers to be used need to be specified too (see doc/parms.pdf).
+
+Superfluous sections and parameters may be deleted or commented out. If
+present they are not read by the program and the specified values (if any)
+have no effect on the run. As already mentioned, the indices of the parameter
+sections describing the reweighting factors must increase in steps of 1 from 0
+to nrw-1. The indices of the solver sections can be freely chosen in the range
+0,..,31.
+
+
+FILES
+
+The program searches for exported field configurations
+
+  <run name>n<int>
+
+in the directory cnfg_dir, where <int> is the configuration number.
+Imported configurations
+
+  <run name>n<int>_0       (on process 0)
+  <run name>n<int>_1       (on process 1)
+  <run name>n<int>_2       (on process 2)
+        ...                     ...
+
+are searched in the directory loc_dir.
+
+The program writes the results of the computations to the files
+
+  <run name>.ms1.log   Log file
+  <run name>.ms1.log~  Backup log file
+
+  <run name>.ms1.dat   Measurement data file
+  <run name>.ms1.dat~  Backup data file
+
+  <run name>.ms1.par   Parameter data file
+  <run name>.ms1.par~  Backup parameter data file
+
+  <run name>.ms1.rng   Exported state of the random number generators
+  <run name>.ms1.rng~  Backup random number generator state file
+
+in the directories log_dir (log file) and dat_dir (data files). The parameter
+file is created at the beginning of the run and remains unchanged after that.
+The backup copies *.log~, *.dat~ and *.rng~ of the *.log, *.dat and *.rng file
+are updated each time a configuration is fully processed.
+
+The directories log_dir and dat_dir, as well as the directory cnfg_dir if the
+option -noexp is not set, must be accessible from process 0. If the -noexp
+option is set, the directory loc_dir must be accessible from all processes.
+
+
+OUTPUT DATA
+
+At the beginning of the data file the program writes the data contained in the
+header structure
+
+static struct
+{
+   int nrw;
+   int *nfct,*nsrc;
+} file_head;
+
+where nrw is the number of reweighting factors specified in the input file,
+nfct[0],..,nfct[nrw-1] the array of the associated numbers of Hasenbusch
+factors (set to 1 for RWRAT reweighting factors) and nsrc[0],..,nsrc[nrw-1]
+the array of the associated numbers N of source fields.
+
+After the header data, the data file contains a sequence of structures
+
+static struct
+{
+   int nc;
+   double ***sqn,***lnr;
+} data;
+
+labeled by the field configuration number nc. For each configuration, the data
+are
+
+  sqn[irw][ifct][isrc]    Square norm of the source field number isrc
+                          generated in the course of the calculation of
+                          the factor number ifct of the reweighting factor
+                          number irw.
+
+  lnr[irw][ifct][isrc]    The logarithm, -ln(r), of the associated stochastic
+                          estimate of the reweighting factor r (irw=0,..,nrw-1,
+                          ifct=0,..,nfct[irw-1], isrc=0,..,nsrc[irw]-1).
+
+See the functions write_file_head() and write_data() in the file ms1.c for the
+exact order in which the data are written to the output files.
+
+From these data, the stochastic estimates W[irw] of the reweighting factor
+number irw are obtained by calculating the averages
+
+  w[irw][ifct]=
+
+    (1/nsrc[irw])*sum_{isrc=0}^{nsrc[irw]-1} exp{-lnr[irw][ifct][isrc]}
+
+and the product
+
+  W[irw]=prod_{ifct=0}^{nfct[irw]-1} w[irw][ifct]
+
+A simple main program that reads and analyses the data files is included in
+the directory ../devel/nompi/main.
+
+
+BINARY FILE FORMAT
+
+The log files are ASCII files that should be readable on any machine. The
+data files, on the other hand, are written in binary format using the fwrite()
+function. Integers are written as 4 byte signed integers and floating-point
+numbers according to the IEEE-754 standard for double-precision numbers.
+
+Binary data written to disk are converted to little endian byte order if the
+machine is big endian. Field configurations and measurement data stored on
+disk are thus always in little endian byte order independently of the machine
+that is used.
+
+
+RANDOM NUMBER GENERATOR
+
+Random numbers are generated using the ranlux generator. Depending on the
+context, either single- or double-precision random numbers are generated. The
+initialization of the generator is as follows:
+
+- In the case of a new run, the program reads the parameters "level" and
+  "seed" from the input file and uses these to initialize the generator.
+
+- Continuation runs do the following:
+
+  o If the option -norng is set, the parameters "level" and "seed" are read
+    from the input parameter file and the generator is initialized using
+    "seed"^n (bitwise exclusive or) as the seed value, where n is the number
+    of the last field configuration saved in the previous run.
+
+  o Otherwise the state of the generator is read from the file
+    <run name>.ms1.rng. The generator is thus reset to the state it had at the
+    end of the previous run. Note that the process grid NPROC0x..xNPROC3 must
+    be unchanged in this case from one run to the next (an error occurs if it
+    is not).
+
+In a sequence of continuation runs, it is therefore recommended to leave the
+process grid unchanged and to make no use of the option -norng. If the process
+grid is changed at some point, the next run must start from an exported field
+configuration and the option -norng must be set. In all cases, the parameters
+"level" and "seed" on the input parameter file may be left unchanged.
+
+Note that if the configurations are read in imported form, the state of the
+generator is *not* set to the one stored on the configuration file. The
+generated random numbers, and consequently the computed reweighting factors,
+are therefore independent of whether the configurations are read in imported
+or exported form.
+
+
+SAFETY MEASURES AND ERROR REPORTING
+
+A number of safety measures have been implemented:
+
+- It is not possible to overwrite an existing log or data file; these
+  must first be deleted or renamed by hand if a run is to be repeated.
+
+- Appending a run to a previous measurement run is only possible if the run
+  name and all relevant parameters match. Moreover, the new configuration
+  sequence must extend the previous one with the same configuration spacing.
+
+- The accessibility of the various directories and the compatibility
+  of the chosen parameters is checked at the beginning of the program.
+
+Any attempt to force illegal operations leads to an abnormal termination of
+the program, with an informative message being written either to the log file
+or the file STARTUP_ERROR in the program directory (if the error occurs before
+the log file is opened).
+
+It should be noted that filenames may not be longer than 127 characters. The
+program checks at an early stage whether this is the case or not. Longer
+filenames can be accommodated by setting the macro NAME_SIZE in the header
+file global.h to a larger value.
+
+
+CHECKPOINTS AND EARLY TERMINATION
+
+The program can be stopped gracefully by touching a file in the log directory
+with the same name as the log file but with extension .end instead of .log. It
+may take a while until the program exits, because it will only do so when the
+current field configuration is fully processed.
+
+If the machine crashes, or if the program was stopped in the way described,
+the run can always be continued starting from the saved output files. However,
+after a crash, the log and data files may be corrupted, in which case they
+must first be restored from the backup files.

@@ -1,0 +1,46 @@
+
+********************************************************************************
+
+                            Rational functions
+
+********************************************************************************
+
+
+Files
+-----
+
+elliptic.c       Computation of the Jacobi elliptic functions sn, cn 
+                 and dn
+
+ratfcts.c        Rational function coefficients data base
+
+zolotarev.c      Computation of the Zolotarev rational approximation 
+                 to 1/sqrt(y)
+
+Include file
+------------
+
+The file ratfcts.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+double ellipticK(double rk)
+  Returns the complete elliptic integral K(k) for 0<=k<1. The value
+  of k is to be passed through the argument rk=k/k' (see the notes).
+
+void sncndn(double u,double rk,double *sn,double *cn,double *dn)
+  Computes the Jacobi elliptic functions sn(u,k), cn(u,k), dn(u,k)
+  for specified real u and 0<=k<1. The value of k is to be passed
+  through the argument rk=k/k' (see the notes).
+
+ratfct_t ratfct(int *irat)
+  Returns a structure containing the coefficients of the rational
+  function specified by the integers irat[3] (see the notes).
+
+void zolotarev(int n,double eps,double *A,double *ar,double *delta) 
+  Computes the amplitude A, the coefficients ar[r-1]=a_r, r=1,..,2n,
+  and the error delta of the Zolotarev optimal rational approximation
+  of degree [n,n] to the function f(y)=1/sqrt(y).

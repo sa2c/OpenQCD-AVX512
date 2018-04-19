@@ -1,0 +1,349 @@
+
+Header file global.h
+
+SYNTAX
+
+In the main program
+
+#define MAIN_PROGRAM
+#include "global.h"
+
+In all other cases
+
+#include "global.h"
+
+
+DESCRIPTION
+
+In this file the globally accessible constants, variables and arrays are
+defined. It is here that the geometry of the lattice and its division into
+processor sublattices is defined.
+
+
+Lattice geometry
+----------------
+
+Currently the only constants that the user can specify are
+
+ NPROC0            The processes are thought to be arranged in a hypercubic
+ NPROC1            grid with NPROC0,..,NPROC3 processes in direction 0,..,3.
+ NPROC2            If NPROCx=1 the lattice is not divided in direction x.
+ NPROC3            Otherwise NPROCx has to be even.
+
+ L0                The local lattices are blocks of size L0xL1xL2xL3 that
+ L1                build up the full lattice in the obvious way. The sizes
+ L2                of the latter are thus (NPROC0*L0),..,(NPROC3*L3). It
+ L3                is assumed that L0,..,L3 are all even and at least 4.
+
+ NPROC0_BLK        The process grid is logically divided into hypercubic
+ NPROC1_BLK        blocks of size NPROC0_BLK,..,NPROC3_BLK in direction
+ NPROC2_BLK        0,..,3. NPROCx_BLK must be greater or equal to 1 and
+ NPROC3_BLK        NPROCx must be an integer multiple of NPROCx_BLK.
+
+The program verifies at compilation time that the values of these constants
+are in the allowed range. See the section "MPI process ranking" below for
+further explanation of the parameters NPROCx_BLK.
+
+All other macros that are defined in global.h are derived from these input
+values. In particular
+
+ NPROC             Total number of processes.
+
+ VOLUME            Number of lattice points in the local lattice
+                   [=L0*L1*L2*L3].
+
+Independently of the boundary conditions imposed on the dynamical fields, the
+lattice is considered to be a 4-dimensional torus. Depending on the process
+numbers NPROC0,..,NPROC3, the local lattices can have non-empty boundaries on
+up to 8 sides. A two-dimensional sketch of the situation is
+
+                  + + + + + + +             *  Volume points = the true
+                + * * * * * * * +              local lattice.
+                + * * * * * * * +
+                + * * * * * * * +           +  Exterior boundary points =
+                + * * * * * * * +              copies of the corresponding
+                + * * * * * * * +              points of the local lattices
+                + * * * * * * * +              on the neighbouring processes.
+                + * * * * * * * +
+                + * * * * * * * +
+                  + + + + + + +
+
+Note that there is no boundary in direction x if NPROCx=1, since the exterior
+boundary points in that direction coincide, in this case, with the interior
+boundary points on the opposite side of the local lattice. The numbers of
+exterior boundary points in direction 0,1,2,3 and the total number of boundary
+points are
+
+ FACE0
+ FACE1
+ FACE2
+ FACE3
+
+ BNDRY = 2*(FACE0+FACE1+FACE2+FACE3)
+
+where, by definition, FACEx=0 if NPROCx=1. The boundaries of the local lattice
+are labeled such that the face in direction -0 has label 0, the face in
+direction +0 has label 1, the face in direction -1 has label 2, and so on.
+
+The global arrays that define the process grid are
+
+ int cpr[4]        Cartesian coordinates of the local process.
+
+ int npr[8]        Process ids of the 8 processes that operate on the 8
+                   neighbouring lattices of the local lattice. Explicitly,
+                   npr[2*mu] is the id of the process in direction -mu and
+                   npr[2*mu+1] the same in direction +mu.
+
+The global arrays that define the lattice geometry are
+
+ int ipt[VOLUME]      ipt[x3+L3*x2+L2*L3*x1+L1*L2*L3*x0] is the index of the
+                      point on the local lattice with Cartesian coordinates
+                      (x0,x1,x2,x3), where the coordinate x0 ranges from 0
+                      to L0-1, x1 from 0 to L1-1, and so on.
+
+ int iup[VOLUME][4]   iup[ix][mu] is the index of the nearest neighbour
+                      point in the positive ("up") direction mu of the
+                      point on the local lattice with index ix. If the
+                      nearest neighbour point is on the boundary of the
+                      lattice, the index iy=iup[ix][mu] is in the range
+                      VOLUME<=iy<VOLUME+BNDRY and uniquely characterizes
+                      the point.
+
+ int idn[VOLUME][4]   idn[ix][mu] is the index of the nearest neighbour
+                      point in the negative ("down") direction mu of the
+                      point on the local lattice with index ix. If the
+                      nearest neighbour point is on the boundary of the
+                      lattice, the index iy=idn[ix][mu] is in the range
+                      VOLUME<=iy<VOLUME+BNDRY and uniquely characterizes
+                      the point.
+
+ int map[BNDRY]       This array maps the boundary of the local lattice
+                      to the corresponding points on the neighbouring
+                      lattices. If ix is a point on the local lattice, and
+                      if iy=iup[ix][mu] a point on the boundary, the index
+                      map[iy-VOLUME] is the label of the matching point on
+                      the next lattice in direction +mu. The same holds
+                      in the negative direction if iy=idn[ix][mu] is a
+                      boundary point.
+
+All these arrays are initialized by the program geometry in the module
+lattice/geometry.c. Note that the arrays refer to the *local* lattice. If the
+global Cartesian coordinates of a lattice point are given, the associated
+process number ip and local index ix can be obtained by calling the program
+ipt_global [geometry.c].
+
+The labeling of the points is such that the even points (those where the sum
+x0+x1+x2+x3 of the global coordinates is even) come first. In particular, the
+first odd point on the local lattice has index VOLUME/2.
+
+The boundary points are also labeled in this way, i.e. the BNDRY/2 even points
+come first, just after the volume points, and then the BNDRY/2 odd points.
+Following the order of the boundary faces specified above, the first even
+point on the face in direction -0 has label VOLUME, while the even points on
+the face in direction +0 start at label VOLUME+FACE0/2, then come the even
+points in direction -1, and so on. Similarly the first odd point on the face
+in direction -0 has label VOLUME+BNDRY/2.
+
+
+Global gauge fields
+-------------------
+
+At each odd point in the local lattice, there are 8 link variables attached in
+the directions +0,-0,..,+3,-3. The set of all these link variables is referred
+to as the "local gauge field".
+
+In memory these link variables are arranged in an array of 8*(VOLUME/2) SU(3)
+matrices, the first element being the link variable U(x,0) at the first odd
+point x, then comes U(x-0,0), then U(x,1), and so on. The last element is thus
+U(y-3,3), where y denotes the last odd point on the local lattice. The values
+stored in these memory locations define the current gauge field.
+
+Initially no memory space is allocated for the single- and double-precision
+gauge fields, but the required memory area is automatically allocated when
+the functions
+
+  su3 *ufld(void)
+
+  su3_dble *udfld(void)
+
+are called for the first time (the types "su3" and "su3_dble" are defined in
+su3.h). These functions return the address of the single- and the double-
+precision gauge field, respectively. The code
+
+  ud=udfld()
+
+for example, assigns the address of the double-precision field to ud.
+The pointer to the link variable U(x,mu) at any given *odd* point x is
+then
+
+  ud+8*(ix-VOLUME/2)+2*mu
+
+while
+
+  ud+8*(ix-VOLUME/2)+2*mu+1
+
+is the pointer to the link variable U(x-mu,mu), where ix denotes the label of
+x. All link variables that constitute the local gauge field can thus be
+accessed in this simple way.
+
+Link variables at the boundary of the local lattice which are stored on the
+neighbouring processes can be fetched from there using the communication
+program in uflds/udcom.c. They may then be accessed using the offsets
+calculated in the module lattice/uidx.c. Detailed explanations are given in
+these two files.
+
+
+Global quark fields
+-------------------
+
+Single- and double-precision quark fields are arrays of type "spinor" and
+"spinor_dble", respectively (see include/su3.h for the definition of these
+types). The number of elements of the global fields is
+
+ NSPIN             Total number of points in the local lattice plus half
+                   of its boundary [thus NSPIN=VOLUME+BNDRY/2].
+
+The first VOLUME elements represent the fields on the local lattice,
+while the remaining BNDRY/2 elements are used as communication buffers.
+
+Initially no memory space is allocated for quark fields. Quark fields are
+handled through the workspace utilities (see utils/wspace.c). The maximal
+numbers ms and msd of single- and double-precision fields is set by calling
+
+ alloc_ws(ms);
+ alloc_wsd(msd);
+
+The pointers to the starting addresses of the fields can then be
+obtained through
+
+ spinor **ps;
+ spinor_dble **psd;
+
+ ps=reserve_ws(ns);
+ psd=reserve_wsd(nsd);
+
+where ns and nsd are the desired numbers of fields (ns<=ms, nsd<=msd).
+
+Quark fields are defined at all points of the local lattice and the even
+points on the boundary. The spinors at the point with label ix in the single-
+and double-precision fields number k, for example, are ps[k][ix] and
+psd[k][ix], respectively, if ps and psd are defined as above.
+
+The spinors at the boundary points are only used in certain programs, such as
+the programs for the Wilson-Dirac operator, where spinors from neighbouring
+lattices need to be fetched using the communication programs in sflds/scom.c
+and sdcom.c. They may then be accessed using the offsets and geometry arrays
+described above.
+
+
+Boundary conditions
+-------------------
+
+The openQCD code supports four types of boundary conditions in time, labeled
+by an integer running from 0 to 3:
+
+ 0:  Open bc for the gauge field, Schroedinger functional (SF) bc for
+     the quark fields.
+
+ 1:  SF bc for gauge and quark fields.
+
+ 2:  Open-SF bc for the gauge field, SF bc for the quark fields.
+
+ 3:  Periodic bc for the gauge field, anti-periodic bc for the quark fields.
+
+In the space directions, periodic boundary conditions are chosen for all
+fields, where, in the case of the quark fields, periodicity is imposed up to a
+U(1) phase factor, i.e. for all k=1,2,3, the quark fields psi(x) are required
+to satisfy
+
+ psi(x+N_k*e_k)=exp{i*theta_k}*psi(x),
+
+ N_k: Size of the (global) lattice in direction k,
+
+ e_k: Unit vector in direction k,
+
+ theta_k: A k-dependent but otherwise fixed angle.
+
+A detailed description of the boundary conditions is included in the notes
+doc/gauge_action.pdf and doc/dirac.pdf. The type of boundary condition is set
+at run time via the input parameter file (see doc/parms.pdf).
+
+The physical time extent T of the lattice is NPROC0*L0-1 in the case of open
+boundary conditions (type 0) and NPROC0*L0 in all other cases (type 1-3).
+Since the set of active field variables is always contained in the local
+lattices, all boundary conditions can be accommodated in the same field
+arrays. Their local sizes are
+
+ Single-precision gauge field:         4*VOLUME
+
+ Double-precision gauge field:         4*VOLUME+7*(BNDRY/4)+3 if type=1,2 and
+                                                              cpr[0]=NPROC0-1
+
+                                       4*VOLUME+7*(BNDRY/4)   otherwise
+
+ Quark fields:                         VOLUME+BNDRY/2
+
+where the 7*(BNDRY/4) double-precision link variables and BNDRY/2 spinors are
+used as communication buffers. The 3 additional link variables at the end of
+the double-precision gauge-field array are reserved for the static boundary
+values of the gauge field at time T in the cases stated. When open boundary
+conditions are chosen, the link variables
+
+  U(x,0)   at x odd and x0=NPROC0*L0-1,
+
+  U(x-0,0) at x odd and x0=0,
+
+are not used and are initialized to zero.
+
+
+MPI process ranking
+-------------------
+
+On a parallel computer with multi-core nodes, the MPI process grid should be
+mapped to the processor cores in such a way that the internode data traffic is
+minimized. This goal is likely to be approximately achieved when each node
+hosts a hypercubic block of lattice points with about equal sizes in all
+directions. Depending on the network, the arrangement of the nodes with
+respect to the lattice may be important too, but is not discussed here.
+
+The available MPI implementation may allow the mapping of the MPI process
+ranks to the nodes to be influenced by the user. The default mapping is
+however usually such that the MPI processes residing on a node are numbered
+consecutively. In the rest of this section, the mapping provided by the system
+is assumed to have this property.
+
+The association of the MPI process ranks to the local sublattices in the
+global lattice is defined by the programs in modules/lattice/geometry.c. As
+already mentioned, the process grid is thought to be divided into blocks of
+size NPROC0_BLK x .. x NPROC3_BLK in the obvious way. The program numbers the
+processes in each of these blocks consecutively. In particular, if the number
+
+ NPROC_BLK = NPROC0_BLK*NPROC1_BLK*NPROC2_BLK*NPROC2_BLK
+
+of processes in a block divides the number of cores per node, the local
+lattices on the nodes form hypercubic blocks of lattice points of size
+
+ NPROCO_BLK*L0 x NPROC1_BLK*L1 x NPROC2_BLK*L2 x NPROC3_BLK*L3.
+
+With 16 cores per node, for example, and if all sizes NPROCx_BLK are set to 2,
+each node will host a single such block of lattice points.
+
+Remarks:
+
+* Independently of the chosen process block sizes NPROCx_BLK, a valid mapping
+  of MPI ranks to the local lattices is guaranteed.
+
+* If no process blocking is desired, i.e. if the behaviour of previous
+  versions of the openQCD package is to be reproduced, the block sizes
+  NPROCx_BLK should be set to 1.
+
+* Probably the best performance is obtained by choosing the block sizes so
+  that each node hosts a single hypercubic block of lattice points.
+
+* As far as possible, the block of lattice points hosted on each node should
+  minimize the ratio of the numbers of surface to volume points.
+
+* Simulations with diffent process block sizes but otherwise the same
+  parameters should not be expected to yield bit-identical results, because
+  the MPI_Reduce() function collects the numbers from the local lattices in
+  different orders.

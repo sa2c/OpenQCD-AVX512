@@ -1,0 +1,22 @@
+
+HMC algorithm
+
+check1        Check of the program set_mdsteps().
+
+check2        Reversibility of the MD evolution.
+
+check3        Conservation of the Hamilton function by the MD evolution.
+
+check4        Check of add_chrono() and get_chrono().
+
+check5        Comparison of rwtm*() with action1().
+
+check6        Comparison of rwtm*eo() with action4().
+
+The programs check5 and check6 accept the option -bc <type> that allows the
+type of boundary condition to be chosen at runtime. When the option is not
+set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of the other programs. In
+the case of check2 and check3, the boundary conditions are selected through
+the input parameter file.

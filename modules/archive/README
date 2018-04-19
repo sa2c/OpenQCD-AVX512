@@ -1,0 +1,69 @@
+
+********************************************************************************
+
+                   I/O functions for field configurations
+
+********************************************************************************
+
+
+Files
+-----
+
+archive.c        Programs to read and write gauge-field configurations.
+
+sarchive.c       Programs to read and write global double-precision spinor
+                 fields.
+
+Include file
+------------
+
+The file archive.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void write_cnfg(char *out)
+  Writes the lattice sizes, the process grid sizes, the coordinates
+  of the calling process, the state of the random number generators,
+  the local plaquette sum and the local double-precision gauge field
+  to the file "out".
+
+void read_cnfg(char *in)
+  Reads the local double-precision gauge field from the file "in",
+  assuming it was written to the file by the program write_cnfg().
+  The program then resets the random number generator and checks
+  that the restored field is compatible with the chosen boundary
+  conditions.
+
+void export_cnfg(char *out)
+  Writes the lattice sizes and the global double-precision gauge
+  field to the file "out" from process 0 in the universal format
+  specified below (see the notes).
+
+void import_cnfg(char *in)
+  Reads the global double-precision gauge field from the file "in"
+  on process 0, assuming the field was written to the file in the
+  universal format. The field is periodically extended if needed
+  and the program then checks that the configuration is compatible
+  with the chosen boundary conditions (see the notes).
+
+void write_sfld(char *out,spinor_dble *sd)
+  Writes the lattice sizes, the process grid sizes, the coordinates
+  of the calling process, the square of the norm of the spinor field
+  sd and the local part of the latter to the file "out".
+
+void read_sfld(char *in,spinor_dble *sd)
+  Reads the local part of the spinor field sd from the file "in",
+  assuming the field was written to the file by write_sfld().
+
+void export_sfld(char *out,spinor_dble *sd)
+  Writes the lattice sizes and the spinor field sd to the file "out"
+  from process 0 in the universal format specified below (see the
+  notes).
+
+void import_sfld(char *in,spinor_dble *sd)
+  Reads the spinor field sd from the file "in" on process 0, assuming
+  the field was written to the file in the universal format (see the
+  notes).

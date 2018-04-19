@@ -1,0 +1,12 @@
+
+Rational approximations
+
+check1    Computation of the complete elliptic integral K(k)
+
+check2    Computation of the Jacobi elliptic functions sn,cn,dn
+
+check3    Zolotarev rational approximation to the sign function
+
+table1    Table of the relative error of the Zolotarev rational 
+          approximation to the function f(x)=1/|x| (suitable for
+          plotting, for example)

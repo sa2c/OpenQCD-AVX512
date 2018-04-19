@@ -1,0 +1,19 @@
+
+Saving/restoring field configurations to/from files.
+
+check1        Writing and reading of gauge configurations.
+
+check2        Exporting and importing gauge configurations.
+
+check3        Importing a previously exported configuration.
+
+check4        Writing and reading spinor fields.
+
+check5        Exporting and importing spinor fields.
+
+check6        Importing a previously exported spinor field.
+
+The programs check1,check2,check3 accept the option -bc <type> that allows the
+type of boundary condition to be chosen (open boundary conditions are assumed
+if the option is not set). All other programs are insensitive to the boundary
+conditions.

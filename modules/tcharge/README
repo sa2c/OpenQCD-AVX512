@@ -1,0 +1,73 @@
+
+********************************************************************************
+
+     Computation of the symmetric field tensor and associated quantities
+
+********************************************************************************
+
+
+Files
+-----
+
+ftcom.c          Communication of the field tensor components residing at 
+                 the boundaries of the local lattices.
+
+ftensor.c        Computation of the symmetric field tensor.
+
+tcharge.c        Computation of the topological charge using the symmetric 
+                 field tensor.
+
+ym_action.c      Computation of the Yang-Mills action using the symmetric 
+                 field tensor.
+
+
+Include file
+------------
+
+The file tcharge.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void copy_bnd_ft(int n,u3_alg_dble *ft)
+  Fetches the boundary values the field ft from the neighbouring MPI
+  processes (see the notes). The boundary values at time NPROC0*L0
+  are fetched from the field at time 0 only in the case of periodic
+  boundary conditions.
+
+void add_bnd_ft(int n,u3_alg_dble *ft)
+  Adds the boundary values of the field ft to the field on the
+  neighbouring MPI processes. The boundary values at time NPROC0*L0
+  are added to the field at time 0 only in the case of periodic
+  boundary conditions.
+
+u3_alg_dble **ftensor(void)
+  Computes the symmetric field tensor of the global double-precision
+  gauge field and returns the pointers ft[0],..,ft[5] to the field
+  components with the Lorentz indices (0,1),(0,2),(0,3),(2,3),(3,1),
+  (1,2). The arrays are automatically allocated if needed. Along the
+  boundaries of the lattice (if any), the program sets the field to
+  zero.
+
+double tcharge(void)
+  Returns the "field-theoretic" topological charge Q of the global
+  double-precision gauge field, using a symmetric expression for the
+  gauge-field tensor.
+
+double tcharge_slices(double *qsl)
+  Computes the sum qsl[t] of the "field-theoretic" topological charge 
+  density of the double-precision gauge field at time t=0,1,...,N0-1
+  (where N0=NPROC0*L0). The program returns the total charge.
+
+double ym_action(void)
+  Returns the Yang-Mills action (w/o prefactor 1/g0^2) of the
+  double-precision gauge field, using a symmetric expression for 
+  the gauge-field tensor.
+
+double ym_action_slices(double *asl)
+  Computes the sum asl[t] of the Yang-Mills action density (w/o
+  prefactor 1/g0^2) of the double-precision gauge field at time
+  t=0,1,...,N0-1 (where N0=NPROC0*L0). The program returns the
+  total action.

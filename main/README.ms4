@@ -1,0 +1,202 @@
+
+Main program ms4
+
+SYNTAX
+
+ms4 -i <filename> [-noexp]
+
+
+DESCRIPTION
+
+This program reads gauge field configurations from disk and computes the quark
+propagator for a number of gaussian random source fields at a specified time
+x0. The calculated propagators are exported to disk in a universal format (see
+archive/sarchive.c). The program has a very limited functionality and serves
+for illustration only.
+
+
+COMMAND-LINE OPTIONS
+
+The program has only few options since most of the parameters are passed
+through an input file. The options are
+
+-i <filename>    Specifies the name of the input file. The name can be
+                 a fully qualified name or be specified relative to the
+                 working directory.
+
+-noexp           Field configurations are normally read in exported
+                 file format from the specified configuration directory.
+                 If this option is set, the configurations are instead
+                 expected in the imported file format on the local disks.
+
+
+INPUT PARAMETERS
+
+The lattice size and the process grid must be defined in the file global.h
+(see README.global). All other parameters are read from the input file. An
+example of a valid input file is ms4.in in this directory. The parameter
+values specified in this file are:
+
+[Run name]
+name         Snoopy137             # Run name = configuration base name
+
+[Directories]
+log_dir      ../data/ms4/log       # Log file directory
+loc_dir      /ndata/qcd1/cnfg      # Local configuration directory
+cnfg_dir     /data/qcd1/cnfg       # Exported configuration directory
+sfld_dir     /data/ms4/sfld        # Exported propagator directory
+
+[Configurations]
+first        1                     # No of the first configuration to consider
+last         4                     # No of the last configuration
+step         1                     # Configuration separation (last-first must
+                                   # be an integer multiple of step)
+
+[Random number generator]
+level        0                     # Ranlux level
+seed         73099                 # Ranlux seed
+
+[Dirac operator]
+kappa        0.1300                # Hopping parameter
+mu           0.001                 # Twisted mass
+csw          1.234                 # Coefficient of the SW term
+
+[Boundary conditions]
+type         2                     # Type of boundary condition (0: open,
+                                   # 1: SF, 2: open-SF, 3: periodic)
+phi          0.12 -0.56            # Boundary values of the gauge field at
+                                   # time 0
+phi'         0.92 0.76             # Boundary values of the gauge field at
+                                   # time NPROC0*L0
+cF           0.95                  # Fermion action improvement coefficient
+                                   # at time 0
+cF'          0.90                  # Fermion action improvement coefficient
+                                   # at time NPROC0*L0
+theta        0.5 1.0 -0.5          # Angles specifying the phase-periodic bc
+                                   # of the quark fields in space
+
+[Source fields]
+x0           20                    # Time at which the random source fields
+                                   # live (0<=x0<NPROC0*L0)
+nsrc         12                    # Number of gaussian random source fields
+                                   # to be generated per gauge configuration
+
+Then follows a description of the solver for the Dirac equation to be used
+(see doc/parms.pdf). The supported solvers are CGNE, SAP_GCR and DFL_SAP_GCR.
+
+Setting the source time x0 to 0 or NPROC0*L0-1 is not permitted if the chosen
+boundary conditions require the quark fields to vanish there. Superfluous
+sections and parameters may be deleted or commented out. If present they are
+not read by the program and the specified values (if any) have no effect on
+the run. The solver index must be set to 0.
+
+
+FILES
+
+The program searches for exported field configurations
+
+  <run name>n<int>
+
+in the directory cnfg_dir, where <int> is the configuration number.
+Imported configurations
+
+  <run name>n<int>_0       (on process 0)
+  <run name>n<int>_1       (on process 1)
+  <run name>n<int>_2       (on process 2)
+        ...                     ...
+
+are searched in the directory loc_dir.
+
+The program prints some information on the progress of the computations
+to the files
+
+  <run name>.ms4.log       Log file
+  <run name>.ms4.log~      Backup log file
+
+in the directory log_dir. The backup file is updated each time a configuration
+is fully processed.
+
+The calculated solutions of the Dirac equation are stored in the files
+
+  <run name>n<int>.s0      (source no 0)
+  <run name>n<int>.s1      (source no 1)
+  <run name>n<int>.s2      (source no 2)
+        ...                    ...
+
+in the directory sfld_dir (nsrc files per gauge field configuration). These
+files can be read using the program import_sfld() [archive/sarchive.c].
+
+The directories log_dir and sfld_dir, as well as the directory cnfg_dir if the
+-noexp option is not set, must be accessible from process 0. If the -noexp
+option is set, the directory loc_dir must be accessible from all processes.
+
+
+SOLVER PERFORMANCE
+
+The program prints the time required for the solution of the Dirac equation to
+the log file. When selecting the solver, one should take into account that the
+CGNE solver tends to be very slow at small quark masses. In the case of the
+GCR solvers, the performance may be poor when the twisted quark mass mu is
+larger than, say, 0.1 and much larger than the ordinary quark mass. The use of
+the deflated solver is recommended if both masses are small.
+
+The processing times per gauge field configuration quoted in the log file
+include the time required for the I/O operations.
+
+
+BINARY FILE FORMAT
+
+The *.log files are ASCII files that should be readable on any machine. Data
+and configuration files, on the other hand, are written in binary format using
+the fwrite() function. Integers are written as 4 byte signed integers and
+floating-point numbers according to the IEEE-754 standard for double-precision
+numbers.
+
+Binary data written to disk are converted to little endian byte order if the
+machine is big endian. Field configurations and measurement data stored on
+disk are thus always in little endian byte order independently of the machine
+that is used.
+
+
+RANDOM NUMBER GENERATOR
+
+Random numbers are generated using the ranlux generator. The generator is
+initialized using the values of the parameters "level" and "seed" specified in
+the input file. If the configurations are read in imported form, the state of
+the generator is *not* set to the one stored on the configuration file. The
+generated random numbers, and consequently the random source fields, are
+therefore independent of whether the configurations are read in imported or
+exported form.
+
+
+SAFETY MEASURES AND ERROR REPORTING
+
+A number of safety measures have been implemented:
+
+- It is not possible to overwrite an existing log file. This file
+  must first be deleted or renamed if a run is to be repeated.
+
+- The accessibility of the various directories and the compatibility
+  of the chosen parameters is checked at the beginning of the program.
+
+Any attempt to force illegal operations leads to an abnormal termination of
+the program, with an informative message being written either to the log file
+or the file STARTUP_ERROR in the program directory (if the error occurs before
+the log file is opened).
+
+On the other hand, once a run started successfully, the calculated propagators
+are saved unconditionally, i.e. any existing propagator files with matching
+filenames are overwritten.
+
+It should be noted that filenames may not be longer than 127 characters. The
+program checks at an early stage whether this is the case or not. Longer
+filenames can be accommodated by setting the macro NAME_SIZE in the header
+file global.h to a larger value.
+
+
+EARLY TERMINATION
+
+The program can be stopped gracefully by touching a file in the log directory
+with the same name as the log file but with extension .end instead of .log. It
+may take a while until the program exits, because it will only do so when the
+current field configuration is fully processed.

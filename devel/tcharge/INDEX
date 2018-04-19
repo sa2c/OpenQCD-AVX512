@@ -1,0 +1,20 @@
+
+Computation of the topological charge and the Yang-Mills action.
+
+check1         Check of the translation and gauge invariance of the 
+               topological charge.
+
+check2         Topological charge of constant abelian background fields.
+
+check3         Check of the program tcharge_slices().
+
+check4         Check of the translation and gauge invariance of the 
+               Yang-Mills action.
+
+check5         Yang-Mills action of constant abelian background fields.
+
+check6         Check of the program ym_action_slices().
+
+All programs accept the option -bc <type> that allows the type of boundary
+condition to be chosen. When the option is not set, open boundary conditions
+are assumed.

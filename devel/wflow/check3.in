@@ -1,0 +1,17 @@
+
+[Configurations]
+name         16x8x8x8b6.00id2
+cnfg_dir     /home/data/openQCD/cnfg
+first        7
+last         7
+step         1
+
+[Boundary conditions]
+type         0
+phi          0.937 0.389
+phi'         -0.283 1.23
+
+[Wilson flow]
+n            100
+eps          0.02
+rule         3

@@ -1,0 +1,8 @@
+
+extras               Special functions and general purpose programs 
+                     related to statistics.
+
+utils                Utility programs: aligned allocation, error functions,
+                     endianess functions, functions needed to read input
+                     files.
+

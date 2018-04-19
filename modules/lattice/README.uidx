@@ -1,0 +1,121 @@
+
+********************************************************************************
+
+                Layout of the double-precision gauge field array
+
+********************************************************************************
+
+As explained in main/README.global, the gauge field on the local lattice is
+defined by its values on the 8 links attached to the odd lattice points. The
+integer offset from the base address of the link variable U(x,mu) at the odd
+point x is
+
+  8*(ix-(VOLUME/2))+2*mu
+
+while the one of U(x-mu,mu) is
+
+  8*(ix-(VOLUME/2))+2*mu+1
+
+where ix denotes the index of x on the local lattice.
+
+When the double-precision gauge field is allocated, space is reserved for
+further 7*BNDRY/4 link variables at the end of the field array. The additional
+space is used for copies of the link variables at the external boundaries of
+the local lattice in the directions +0,+1,+2 and +3.
+
+When SF or open-SF boundary conditions are chosen, the boundary values of the
+field at time T are stored in 3 link variables appended to the field array on
+the MPI processes with cpr[0]=NPROC0-1. The total size of the array in this
+case is thus 4*VOLUME+7*(BNDRY/4)+3, while in all other cases it is
+4*VOLUME+7*(BNDRY/4).
+
+
+Labeling of the boundary points
+-------------------------------
+
+The faces in direction -0,+0,..,-3+3 of the local lattice are labeled by an
+index ifc=0,1,..,7 and so are its exterior boundaries. In the following, the
+term "boundary segment" is used for the set of even (or odd) exterior boundary
+points in a given direction ifc. There are thus 16 boundary segments.
+
+Each point y in a boundary segment has a unique "partner point" x on the local
+lattice such that |x-y|=1. The points in the local lattice are totally ordered
+by their index ix=0,..,VOLUME-1. It is then natural to label the points y in
+the boundary segment by an index ib=0,1,2,.. that respects the order of the
+partner points x.
+
+If x and y are as above, and if y is on the face with label ifc, the index ib
+of y is explicitly given by
+
+  ib=iy-ofs[ifc]          if y is even,
+
+  ib=iy-ofs[ifc]-BNDRY/2  if y is odd,
+
+where iy is the index of y and
+
+  ofs[0]=VOLUME
+  ofs[1]=ofs[0]+FACE0/2
+  ofs[2]=ofs[1]+FACE0/2
+  ofs[3]=ofs[2]+FACE1/2
+  ofs[4]=ofs[3]+FACE1/2
+  ofs[5]=ofs[4]+FACE2/2
+  ofs[6]=ofs[5]+FACE2/2
+  ofs[7]=ofs[6]+FACE3/2
+
+Note that
+
+  iy=iup[ix][mu] on the face in direction +mu,
+
+  iy=idn[ix][mu] on the face in direction -mu.
+
+While the labeling of the points in a boundary segment is always taken to be
+the one described here, the 16 boundary segments may be ordered in various
+ways depending on the context.
+
+
+Boundary fields
+---------------
+
+Along the faces in direction +mu, two kinds of link variables must be
+distinguished (assuming x and y are as above):
+
+(1) The link variables on the link (x,y), where x is even. Note that these are
+    not part of the local gauge field. Their total number is equal to half the
+    number of points on the face.
+
+(2) The link variables U(y,nu) where nu!=mu. None of these is contained in the
+    local gauge field. Their total number is 3 times the number of points on
+    the face.
+
+The number of all these link variables on the faces in direction +0,+1,+2 and
++3 is thus equal to BNDRY/4+3*BNDRY/2=7*BNDRY/4.
+
+In the gauge field array, the link variables of type (1) in direction +0,+1,+2
+and +3 come just after the local gauge field at offset=4*VOLUME. Then follow
+the link variables of type (2) at the even points y on the face in direction
++0, then those at the odd points y on that face, then those at the even points
+y on the face in direction +1, and so on. Within each boundary segment, the
+link variables are ordered in the same way as the points y.
+
+
+Contents of the structures of type uidx_t
+-----------------------------------------
+
+A structure of type uidx_t contains index data that refer to the face
+in a direction +mu. The elements of the structure are
+
+  nu0:      Number of link variables of type (1) on the face.
+
+  nuk:      Number of link variables of type (2) on the face.
+
+  iu0[n]:   Offsets of the link variables on the neighbouring MPI process in
+            direction +mu that correspond to the link variables of type (1)
+            on the face (n=0,..,nu0-1).
+
+  iuk[n]:   Offsets of the link variables on the neighbouring MPI process in
+            direction +mu that correspond to the link variables of type (2)
+            on the face (n=0,..,nuk-1).
+
+Using these index arrays, the boundary link variables are easily extracted
+from the local gauge fields on the neighbouring MPI processes and copied
+to the current process.

@@ -1,0 +1,203 @@
+
+********************************************************************************
+
+                          Molecular-dynamics forces
+
+********************************************************************************
+
+The forces that drive the molecular-dynamics evolution of the gauge field
+depend on many adjustable parameters. Moreover, the frequency-splitting of the
+forces and the presence of several quark flavours potentially gives rise to
+many different forces.
+
+For detailed explanations see the notes "Molecular-dynamics quark forces"
+[doc/forces.pdf] and "Charm and strange quark in openQCD simulations"
+[doc/rhmc.pdf].
+
+
+Normalization of the force fields
+---------------------------------
+
+The total action S in the molecular-dynamics Hamilton function is a sum 
+
+  S=S_0+S_1+S_2+...
+
+of terms. With respect to a basis T^a, a=1,..,8, of antihermitian SU(3)
+generators, the components of the force field F_k(x,mu)^a deriving from the
+term S_k is defined by
+
+  F(x,mu)^a={dS_k(t)/dt}_{t=0},
+
+  S_k(t)=S_k|_{U(x,mu)->exp(t*T^a)*U(x,mu)}.
+
+The generators are assumed to be normalized such that
+
+  tr{T^a*T^b}=-(1/2)*delta^{ab},
+
+but the 3x3 matrices F(x,mu)^a*T^a (summed over a) do not depend on this
+convention. 
+
+
+Supported actions
+-----------------
+
+- Gauge action.
+  Program: action0().
+  Symbol: ACG.
+  Parameters: none.
+
+- One-parameter twisted-mass pseudo-fermion action.
+  Program: action1().
+  Symbol: ACF_TM1.
+  Parameters: mu,ipf,isp [see force1.c], m0 [bare mass].
+
+- One-parameter twisted-mass pseudo-fermion action with even-odd
+  preconditioning.
+  Program: action4().
+  Symbol: ACF_TM1_EO.
+  Parameters: mu,ipf,isp [see force4.c], m0 [bare mass].
+
+- One-parameter twisted-mass pseudo-fermion action with even-odd
+  preconditioning plus "small determinant" action.
+  Program: action4().
+  Symbol: ACF_TM1_EO_SDET.
+  Parameters: mu,ipf,isp [see force4.c], m0 [bare mass].
+
+- Two-parameter (Hasenbusch) twisted-mass pseudo-fermion action.
+  Program: action2().
+  Symbol: ACF_TM2.
+  Parameters: mu0,mu1,ipf,isp [see force2.c], m0 [bare mass].
+
+- Two-parameter (Hasenbusch) twisted-mass pseudo-fermion action
+  with even-odd preconditioning.
+  Program: action5().
+  Symbol: ACF_TM2_EO.
+  Parameters: mu0,mu1,ipf,isp [see force5.c], m0 [bare mass].
+
+- Rational function pseudo-fermion action.
+  Program: action3().
+  Symbol: ACF_RAT.
+  Parameters: irat,ipf,isp [see force3.c], m0 [bare mass].  
+
+- Rational function pseudo-fermion action plus "small determinant"
+  action.
+  Program: action3().
+  Symbol: ACF_RAT_SDET.
+  Parameters: irat,ipf,isp [see force3.c], m0 [bare mass].  
+
+
+Associated forces
+-----------------
+
+- Gauge force.
+  Program: force0(). 
+  Symbol: FRG.
+  Parameters: none.
+
+- One-parameter twisted-mass pseudo-fermion force.
+  Program: force1().
+  Symbol: FRF_TM1.
+  Parameters: mu,ipf,isp,icr [see force1.c], m0 [bare mass].
+
+- One-parameter twisted-mass pseudo-fermion force with even-odd
+  preconditioning.
+  Program: force4().
+  Symbol: FRF_TM1_EO.
+  Parameters: mu,ipf,isp,icr [see force4.c], m0 [bare mass].
+
+- One-parameter twisted-mass pseudo-fermion force with even-odd
+  preconditioning plus "small determinant" force.
+  Program: force4().
+  Symbol: FRF_TM1_EO_SDET.
+  Parameters: mu,ipf,isp,icr [see force4.c], m0 [bare mass].
+
+- Two-parameter (Hasenbusch) twisted-mass pseudo-fermion force.
+  Program: force2().
+  Symbol: FRF_TM2.
+  Parameters: mu0,mu1,ipf,isp,icr [see force2.c], m0 [bare mass].
+  
+- Two-parameter (Hasenbusch) twisted-mass pseudo-fermion force with
+  even-odd preconditioning.
+  Program: force5().
+  Symbol: FRF_TM2_EO.
+  Parameters: mu0,mu1,ipf,isp,icr [see force5.c], m0 [bare mass].
+
+- Rational function pseudo-fermion force.
+  Program: force3().
+  Symbol: FRF_RAT.
+  Parameters: irat,ipf,isp [see force3.c], m0 [bare mass].
+
+- Rational function pseudo-fermion plus "small determinant" force.
+  Program: force3().
+  Symbol: FRF_RAT_SDET.
+  Parameters: irat,ipf,isp [see force3.c], m0 [bare mass].
+
+
+Pseudo-fermion fields
+---------------------
+
+Pseudo-fermion fields are allocated permanently at the start of the simulation
+program. They are administered by the module mdflds/mdflds.c together with the
+momentum and the force fields.
+
+The maximal number npf of pseudo-fermion fields is set together with the other
+parameters of the HMC algorithm (see flags/hmc_parms.c).
+
+
+Solver programs
+---------------
+
+The available solver programs for the Dirac equation are
+
+- Conjugate gradient algorithm for the normal Dirac equation.
+  Programs: tmcg() and tmcgeo() [see tmcg.c].
+  Symbol: CGNE.
+
+- Multi-shift conjugate gradient algorithm for the normal even-odd
+  preconditioned Dirac equation.
+  Program: tmcgm() [see tmcgm.c].
+  Symbol: MSCG.
+
+- SAP-preconditioned GCR algorithm for the Dirac equation.
+  Program: sap_gcr() [see sap_gcr.c].
+  Symbol: SAP_GCR.
+
+- Deflated SAP-preconditioned GCR algorithm for the Dirac equation.
+  Program: dfl_sap_gcr() and dfl_sap_gcr2() [see dfl_sap_gcr.c].
+  Symbol: DFL_SAP_GCR.
+
+A particular solver is thus described by the solver symbol, the values of the
+program arguments and further parameters (the bare quark mass, the parameters
+of the SAP preconditioner and those related to the deflation subspace).
+
+
+Chronological solver
+--------------------
+
+The force programs force1() and force2() can be instructed to propagate the
+solutions of the Dirac equation along the molecular-dynamics trajectories. The
+stacks of previous solutions are handled by the module chrono.c.
+
+
+Action, force and solver data base
+----------------------------------
+
+The parameters of the actions, forces and solvers used in a simulation are
+stored in a data base. At the beginning of the simulation program, the list of
+all actions, forces and solvers must be defined. These data are then entered
+in the data base using the utility programs in the flags module directory (see
+action_parms.c, force_parms.c and solver_parms.c).
+
+
+Rational function data base
+---------------------------
+
+For the charm and the strange quark, a version of the RHMC algorithm is used.
+The basic rational functions are [n,n] Zolotarev rational functions, but in
+the simulation programs it is advantageous to split these into a few rational
+functions of lower degree and to use a pseudo-fermion action for each of them.
+
+The data base for rational functions consists of two parts, one for the
+parameters of the basic Zolotarev rational functions (flags/rat_parms.c) and
+the other for the rational functions that occur in the pseudo-fermion actions
+(see ratfcts/ratfcts.c).

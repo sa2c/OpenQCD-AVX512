@@ -1,0 +1,146 @@
+
+[Run name]
+name         Snoopy137
+
+[Directories]
+log_dir      ../data/qcd1/log
+dat_dir      ../data/qcd1/dat
+loc_dir      /ndata/qcd1/cnfg
+cnfg_dir     /data/qcd1/cnfg
+
+[Random number generator]
+level        0
+seed         73099
+
+[Lattice parameters]
+beta         6.0
+c0           1.6667
+kappa        0.1300
+csw          1.234
+
+[Boundary conditions]
+type         2
+phi          0.12 -0.56
+phi'         0.92 0.76
+cG           1.10
+cG'          1.05
+cF           0.95
+cF'          0.90
+theta        0.5 1.0 -0.5
+
+[HMC parameters]
+actions      0 1 2
+npf          2
+mu           0.01 1.0
+nlv          3
+tau          0.5
+
+[MD trajectories]
+nth          320
+ntr          32000
+dtr_log      4
+dtr_ms       8
+dtr_cnfg     32
+
+[Level 0]
+integrator   OMF4
+nstep        1
+forces       0
+
+[Level 1]
+integrator   OMF2
+lambda       0.2
+nstep        2
+forces       1
+
+[Level 2]
+integrator   LPFR
+nstep        6
+forces       2
+
+[Action 0]
+action       ACG
+
+[Action 1]
+action       ACF_TM1
+ipf          0
+im0          0
+imu          1
+isp          0
+
+[Action 2]
+action       ACF_TM2
+ipf          1
+im0          0
+imu          0 1
+isp          1 0
+
+[Force 0]
+force        FRG
+
+[Force 1]
+force        FRF_TM1
+isp          2
+ncr          4
+
+[Force 2]
+force        FRF_TM2
+isp          3
+ncr          0
+
+[Solver 0]
+solver       CGNE
+nmx          256
+res          1.0e-10
+
+[Solver 1]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          24
+res          1.0e-10
+
+[Solver 2]
+solver       CGNE
+nmx          256
+res          1.0e-8
+
+[Solver 3]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          24
+res          1.0e-8
+
+[SAP]
+bs           4 4 4 4
+
+[Deflation subspace]
+bs           4 4 4 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.1350
+mu           0.01
+ninv         5
+nmr          4
+ncy          5
+
+[Deflation projection]
+nkv          24
+nmx          512
+res          1.0e-2
+
+[Deflation update scheme]
+dtau         0.3
+nsm          1
+
+[Wilson flow]
+integrator   RK3
+eps          2.0e-2
+nstep        100
+dnms         10

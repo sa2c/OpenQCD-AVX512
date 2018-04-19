@@ -1,0 +1,214 @@
+
+xx. yyyy 2016
+
+Version 1.6: 4th public release.
+
+- Added phase-periodic boundary conditions in the space directions for
+  the quark fields (thanks to Isabel Campos). See doc/dirac.pdf and
+  doc/parms.pdf for details.
+
+- The function chs_ubnd() [lattice/bcnds.c] has been removed since its
+  functionality is now contained in set_ud_phase() and unset_ud_phase()
+  [uflds/uflds.c].
+
+- The error functions have been moved to a new module utils/error.c and
+  the error_loc() function has been changed so that it calls MPI_Abort()
+  when an error occurs in the calling MPI process. There is then no use
+  for the error_chk() function anymore and so it has been removed.
+
+- There is a new module utils/hsum.c providing generic hierarchical
+  summation routines. These are now used in most programs where such
+  sums are performed, thus leading to an important simplification of
+  the programs (see linalg/salg_dble.c, for example).
+
+- Corrected flags/rw_parms.c so as to get rid of compiler warnings when
+  NPROC=1.
+
+- Corrected notes in utils/endian.c.
+
+- In main/ym1.c delete superfluous second call of alloc_data() in the
+  main program.
+
+- In main/ms4.c replaced "x0=(N0-1)" by "x0==(N0-1)" on line 185 and
+  "if (sp.solver==SAP_GCR)" by "else if (sp.solver==SAP_GCR)" on line
+  491 (thanks to Abdou Abdel-Rehim for noting this bug).
+
+- In random/ranlux.c inserted error message in check_machine() to
+  make sure the number of actual MPI processes matches NPROC.
+
+- In the main programs qcd1.c and ym1.c interchanged the order of init_ud()
+  and init_rng().
+
+- Corrected avx.h in order to get rid of some Intel compiler warnings.
+
+- Corrected a bug in cmat_vec() and cmat_vec_assign() [linalg/cmatrix.c]
+  that could lead to a segmentation fault if the option -DAVX is set,
+  the argument "n" is odd and if the matrix "a" is not aligned to a 16
+  byte boundary (thanks to Agostino Patella).
+
+- Corrected the use of alignment data attributes so as to fully comply
+  with the syntactic rules described in the gcc manuals.
+
+- Reworked the module su3fcts/chexp.c in order to make it safer against
+  aggressively optimizing compilers.
+
+- Included the AVX su3_multiply_dble and su3_inverse_multiply_dble macros
+  in the module su3fcts/su3prod.c. Modified the inline assembly code in
+  prod2su3alg() in order to make it safer against aggressively optimizing
+  compilers.
+
+- Included new inline assembly code in avx.h that makes use of fused
+  multiply-add (FMA3) instructions. These can be activated by setting
+  the compiler option -DFMA3 together with -DAVX. Several modules now
+  include such instructions, notably cmatrix.c, cmatrix_dble.c, salg.c
+  and salg_dble.c.
+
+- Adapted all check programs to the changes in the modules.
+
+- Modified devel/nompi/su3fcts/time1.c so as to more accurately measure
+  the time required for su3xsu3_vector multiplications.
+
+- Added an "LFLAGS" variable to the Makefiles that allows the compiler
+  options in the link step to be set to a value different from CFLAGS.
+
+- Revised the documentation files doc/dirac.pdf and doc/parms.pdf.
+
+- Revised the top README file.
+
+- Revised modules/flags/README.
+
+
+22. April 2014
+
+Version 1.4: 3rd public release.
+
+- Changed the way SF boundary conditions are implemented so that the time
+  extent of the lattice is now NPROC0*L0 rather than NPROC0*L0-1.
+
+- Adapted all modules and main programs so as to support four types of
+  boundary conditions (open, SF, open-SF and periodic). For detailed
+  explanations see main/README.global, doc/gauge_action.pdf, doc/dirac.pdf,
+  and doc/parms.pdf.
+
+- The form of the gauge action near the boundaries of the lattice with SF
+  boundary conditions has been slightly modified with respect to the choice
+  made in version 1.2 (see doc/gauge_action.pdf; the modification only
+  concerns actions with double-plaquette terms).
+
+- The programs for the light-quark reweighting factors now support
+  twisted-mass Hasenbusch decompositions into products of factors. In the
+  program main/ms1.c, the factorization (if any) can be specified through the
+  input parameter file. NOTE: the layout of the data on the output data file
+  produced by ms1.c had to be changed with respect to openQCD-1.2.
+
+- Slightly modified the program main/ms2.c so as to allow for different
+  power-method iteration numbers when estimating the lower and upper
+  end of the spectrum of the Dirac operator (see main/README.ms2).
+
+- Removed flags/sf_parms.c since the functionality of this module is now
+  included in lat_parms.c.
+
+- Updated documentation files gauge_action.pdf, dirac.pdf, parms.pdf and
+  rhmc.pdf.
+
+- In main/ms4.in and main/qcd1.in replaced "[Deflation projectors]" by
+  "[Deflation projection]".
+
+- Removed main/qcd2.c since main/qcd1.c now includes the case of SF boundary
+  conditions.
+
+- Corrected all check programs in ./devel/* so as to take into account the
+  different choices of boundary conditions. Many check programs now have a
+  command line option -bc <type> that allows the type of boundary condition to
+  be specified at run time.
+
+- Corrected a bug in Dwee_dble() [modules/dirac/Dw_dbl.c] that shows up in
+  some check programs if none of the local lattice sizes L1,L2,L3 is divisible
+  by 4. The functionality of the other modules and the main programs in ./main
+  was not affected by this bug, because Dwee_dble() is not called in any of
+  these programs.
+
+- Corrected modules/flags/rw_parms.c so as to allow for Hasenbusch factorized
+  reweighting factors.
+
+- Corrected and improved the descriptions at the top of many module files.
+
+- Corrected devel/ratfcts/INDEX.
+
+- Added forgotten "plots" directory in devel/nompi/main.
+
+- Replaced &irat in MPI_Bcast(&irat,3,MPI_INT,0,MPI_COMM_WORLD) by irat in
+  flags/force_parms.c [read_forc_parms() and read_force_parms2()]. This is not
+  a mistake but an unnatural and unintended use of the C language. Corrected
+  analogous cases in a number of check programs (thanks to Hubert Simma and
+  Georg Engel for noting these misprints).
+
+- Corrected check program block/check1.c (the point labeling does not need to
+  respect any time ordering).
+
+
+12. May 2013
+
+Version 1.2: 2nd public release.
+
+- Added AVX inline-assembly to the time-critical functions (Dirac operator,
+  linear algebra, SAP preconditioner, SU(3) functions). See the README file in
+  the top directory of the distribution.
+
+- Added support for blocked MPI process ranking, as is likely to be profitable
+  on parallel computers with mult-core nodes (see main/README.global).
+
+- Made the field import/export functions more efficient by avoiding the
+  previously excessive use of MPI_Barrier().
+
+- Added import/export functions for the state of the random number generators.
+  Modified the initialization of the generators so as to be independent of the
+  ranking of the MPI processes. See the notes in modules/random/ranlux.c. Added
+  a check program in devel/random.
+
+- Continuation runs of qcd1,qcd2,ym1 and ms1 now normally reset the random
+  number generators to their state at the end of the previous run. The
+  programs initialize the generators in the traditional way if the option
+  -norng is set (see README.qcd1, for example).
+
+- Modified the deflated SAP+GCR solver (dfl/dfl_sap_gcr.c) by replacing the
+  deflation projectors through an inaccurate projection in the preconditioner
+  (as suggested by Frommer et al. [arXiv:1303:1377]; the deflation subspace
+  type and subspace generation algorithm are unchanged). This leads to a
+  structural simplification and, after some parameter tuning, to a slight
+  performance gain. NOTE: the deflation parameter set is changed too and the
+  number of status variables is reduced by 1 (see modules/flags/dfl_parms.c,
+  modules/dfl/dfl_sap_gcr.c and doc/parms.pdf).
+
+- Included a program (devel/dfl/check4.c) that allows the parameters of the
+  deflated SAP+GCR solver to be tuned on a given lattice.
+
+- Deleted the now superfluous module/dfl/dfl_projectors.c.
+
+- Added the function fdigits() [utils/mutils.c] that allows double-precision
+  floating point numbers to be printed with all significant decimal digits
+  (and only these). The main programs make use of this function to ensure that
+  the values of the decimal parameters are printed to the log files with as
+  many significant digits as were given on the input parameter file (assuming
+  not more digits were specified than can be represented by a double number).
+
+- Replaced "if" by "else if" on line 379 of main/ms2.c. This bug stopped the
+  program with an error message when the CGNE solver was used. It had no
+  effect when other solvers were used.
+
+- Changed the type of the variable "sf" to "int" in lines 257 and 440 of
+  forces/force0.c. This bug had no effect in view of the automatic type
+  conversions performed by the compiler.
+
+- Corrected sign in line 174 of devel/sap/check2.c. This bug led to wrong
+  check results, thus incorrectly suggesting that the SAP modules were
+  incorrect.
+
+- Corrected a mistake in devel/tcharge/check2.c and devel/tcharge/check5.c
+  that gave rise to wrong results suggesting that the tested modules were
+  incorrect.
+
+
+14. June 2012
+
+Version 1.0: Initial public release.

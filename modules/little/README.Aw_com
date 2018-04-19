@@ -1,0 +1,204 @@
+
+********************************************************************************
+
+                   Calculation of the little Dirac operator
+
+********************************************************************************
+
+The computation of the matrix arrays Aoe and Aeo representing the hopping
+terms of the little Dirac operator require the spinor fields at the interior
+boundaries of the local lattice to be communicated to the neighbouring
+lattices. Some communications are also required when the matrices representing
+the even-odd preconditioned operator are calculated.
+
+
+Extraction of boundary fields
+-----------------------------
+
+The computation of the matrix elements Aoe and Aeo involves a computation of
+the scalar products of spinor fields residing at the interior boundary points
+of the blocks in the DFL_BLOCKS grid. If b0 and b1 are neighbouring blocks
+with indices n0 and n1, respectively, where b1 is displaced from b0 in the
+positive direction mu, the geometrical situation is as follows:
+
+           -----> x_mu
+       
+         -----   -----
+            e | | o
+            e | | o
+            o | | e
+            o | | e
+         -----   -----
+     block b0     block b1
+
+Here "e" and "o" denote even and odd interior boundary points. The scalar
+products to be computed are then
+
+  sp[0][Ns*k+l] = -1/2*(v_{n0,k},(1-gamma_mu)*U*v_{n1,l}),
+
+  sp[1][Ns*k,l] = -1/2*(v_{n0,k},(1+gamma_mu)*U*v_{n1,l}),
+
+where v_{n0,k} and v_{n1,l} (k,l=0,..,Ns-1) are the deflation modes on block
+b0 and b1 respectively. In these scalar products, one sums over the interface
+points only and "U" stands for the link variables across the interface.
+
+It is helpful to split the sum in the scalar products in two sums, one going
+over the (e,o) pairs of points and the other over the (o,e) pairs (see the
+figure above). The computation then proceeds by first extracting
+
+  psi_{k,e}=v_{n0,k}_e,                chi_{l,e}=v_{n1,l}_e,
+
+  psi_{k,o}=U^dag*v_{n0,k}_o,          chi_{l,o}=U*v_{n1,l}_o.
+
+Once this is done, the scalar products
+
+  (psi_{k,e},chi_{l,o}),       (psi_{k,e},gamma_mu*chi_{l,o}), 
+
+  (psi_{k,o},chi_{l,e}),       (psi_{k,o},gamma_mu*chi_{l,e}),
+    
+may be calculated, from which the matrices sp[0] and sp[1] are obtained by
+taking simple linear combinations.
+
+
+Communication of spinor fields
+------------------------------
+
+When the block b0 touches the boundary of the local lattice in direction mu,
+the neighbouring block b1 is on the neighbouring MPI process. At the same time
+the local lattice contains another block b1', with index n1', on the opposite
+face of the local lattice, which is the neighbour in direction mu of the n0'th
+block on the process in direction -mu:
+
+
+	  --------   ----------------------   --------
+		  | |                      | |          
+		  | |                      | |          
+		  | |                      | |          
+		  | |                      | |          
+	     *****| |*****           ***** | | *****    
+	     *   *| |*   *           *   * | | *   *    
+	     *****| |*****           ***** | | *****    
+	      b0' | | b1'              b0  | |  b1      
+		  | |                      | |          
+		  | |                      | |          
+	  --------   ----------------------   --------
+
+
+Before the scalar products can be computed, some fields need to be moved from
+and to the neighbouring processes. The program b2b_flds() moves
+
+  psi_{k,e} from b0 to b1 and
+
+  chi_{l,e} from b1 to b0
+
+across the interface that separates b0 from b1. Note that b1' is the neighbour
+of b0' on the local lattice to the left. Exchanges of fields across that
+boundary are performed as in the case of the b0,b1 pair of blocks.
+
+
+Elements of the b2b_flds_t structure
+------------------------------------
+
+The b2b_flds_t structure returned by the program b2b_flds() contain the 
+following data: 
+
+   n[2]                       n[0]=n0. n[1]=n1 or n1' depending on whether 
+                              b1 is on the local lattice or not.
+
+   vol                        Number of points on the interface.
+
+   ibn                        Indicates whether b1 is on a different
+                              local lattice (ibn=1) or not (ibn=0).
+
+   sde[2][Ns][vol]            Extracted field arrays.
+   sdo[2][Ns][vol]
+
+The contents of the field arrays depends on whether a communication was needed
+or not:
+
+ibn=0 (no communication):
+
+   sde[0][k] = psi_{k,e}
+   sde[1][l] = chi_{l,e}
+
+   sdo[0][k] = psi_{k,o}
+   sdo[1][l] = chi_{l,o}
+
+ibn=1:
+
+   sde[0][k] = psi_{k,e}' (field communicated from b0')
+   sde[1][l] = chi_{l,e}  (field communicated from b1)
+
+   sdo[0][k] = psi_{k,o}  (field extracted from b0)
+   sdo[1][l] = chi_{l,o}' (field extracted from b1')
+
+
+Computation of scalar products
+------------------------------
+
+The calculation of the hopping terms Aoe and Aeo proceeds by running through
+all block pairs b0,b1, extracting the boundary fields using b2b_flds() and
+calculating the scalar products of the extracted fields. In the case of the
+block pairs with ibn=0, the extracted fields are exactly those required for
+these scalar products. However, if ibn=1, the scalar products that can be
+formed (without further communication) are
+
+   (psi_{k,e}',chi_{l,o}'), (psi_{k,e}',gamma_mu*chi_{l,o}')
+
+and
+
+   (psi_{k,o},chi_{l,e}), (psi_{k,o},gamma_mu*chi_{l,e}).
+
+The first of these contribute to the hopping terms Aoe,Aeo to/from b0',b1'
+and the second to those to/from b0,b1. 
+
+
+Assignment of the hopping terms
+-------------------------------
+
+The calculated scalar products finally need to be assigned to the arrays Aoe
+and Aeo in the data structures that define the little Dirac operator (see
+README.Aw). In doing so, one should take into account that the labeling of the
+blocks, as used in the description of the geometry of the DFL_BLOCKS grid, is
+not guaranteed to coincide with the ordering of the blocks in block list
+returned by blk_list(). The geometric label of the n'th block in the list is
+
+  nsw=grd.idx[n],
+
+where grd=dfl_geometry() is the structure containing the grid geometry arrays.
+The ordering of the matrices in the arrays Aoe and Aeo is the geometric one,
+while the program b2b_flds() uses the natural ordering in the block list.
+
+The mapping of the scalar products is thus
+
+ibn=0:
+
+   (psi_{k,o},chi_{l,e}), ..   are assigned to Aoe[m+ifc],Aeo[m+ifc] where 
+                               m=grd.idx[n0] and ifc=2*mu+1 if b0 is odd or 
+                               m=grd.idx[n1] and ifc=2*mu   if b0 is even.
+
+ibn=1:
+
+   (psi_{k,o},chi_{l,e}), ..   are assigned to Aoe[m+ifc],Aeo[m+ifc] where 
+                               m=grd.idx[n0] and ifc=2*mu+1 if b0 is odd.
+
+   (psi_{k,o}',chi_{l,e}'), .. are assigned to Aoe[m+ifc],Aeo[m+ifc] where 
+                               m=grd.idx[n1'] and ifc=2*mu if b1' is odd.
+
+   If b0 and/or b1' is even, the scalar products must be copied to the 
+   neighbouring processes in direction +mu and -mu respectively. They are
+   first assigned to matrices at the end of the Aoe and Aeo arrays and
+   eventually (after all pairs of blocks are processed) are communicated
+   by the program cpAoe_ext_bnd().   
+
+
+Even-odd preconditioned operator
+--------------------------------
+
+As explained in README.Aw, the even-odd preconditioned little Dirac operator
+requires the computation of the products Aee^(-1)*Aeo and Aoo^(-1)*Aoe. All
+matrices in the second product are locally available, but the first product
+can only be formed after communicating the matrices Aee^(-1) residing at the
+interior boundary of the local block lattice to the neighbouring processes.
+The program cpAee_int_bnd() does that along the lines of the communication
+programs for complex and spinor fields (see vflds/vdcom.c and sflds/sdcom.c).

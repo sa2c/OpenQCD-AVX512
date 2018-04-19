@@ -1,0 +1,31 @@
+
+********************************************************************************
+
+                       Collection of openQCD notes
+
+********************************************************************************
+
+dirac.pdf             Implementation of the lattice Dirac operator.
+
+forces.pdf            Molecular-dynamics quark forces.
+
+gauge_action.pdf      Gauge actions in openQCD simulations.
+
+mscg.pdf              Multi-shift conjugate gradient algorithm.
+
+parms.pdf             Parameters of the openQCD main programs.
+
+ranlux_guide.pdf      User's guide for the random number generator ranlux.
+                      Notes accompanying the program files ranlxs.c and
+                      ranlxd.c in modules/random.
+
+ranlux_notes.pdf      Description of the algorithms used in the current
+                      version of the ranlux random number generator.
+
+rhmc.pdf              Charm and strange quark in openQCD simulations.
+
+stat_fcts.pdf         Statistical tests. Notes accompanying the program files
+                      pchi_square.c and ks_test.c in modules/nompi/extras.
+
+su3_fcts.pdf          SU(3) matrix functions.
+

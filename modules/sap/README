@@ -1,0 +1,73 @@
+
+********************************************************************************
+
+                     Schwarz Alternating Procedure (SAP)
+
+********************************************************************************
+
+
+Files
+-----
+
+blk_solv.c          Solution of the Dirac equation on the blocks of the
+                    SAP_BLOCKS grid.
+
+sap.c               Multiplicative alternating Schwarz procedure for the
+                    solution of the Wilson-Dirac equation.
+
+sap_com.c           SAP communication program.
+
+sap_gcr.c           SAP+GCR solver for the Wilson-Dirac equation.
+
+
+Include file
+------------
+
+The file sap.h defines the prototypes for all externally accessible
+functions that are defined in the *.c files listed above.
+
+
+List of functions
+-----------------
+
+void blk_mres(int n,float mu,int nmr)
+  Depending on whether the twisted-mass flag is set or not, this
+  program approximately solves (Dw+i*mu*gamma_5*1e)*b.s[0]=b.s[1] or
+  (Dw+i*mu*gamma_5)*b.s[0]=b.s[1] on the n'th block b of the SAP_BLOCKS
+  grid. The solution is obtained by applying nmr minimal residual steps,
+  using b.s[2] as workspace. On exit, the approximate solution and its
+  residue are in b.s[0] and b.s[1], respectively.
+
+void blk_eo_mres(int n,float mu,int nmr)
+  Approximate solution of (Dwhat+i*mu*gamma_5)*b.s[0]=b.s[1] for given
+  b.s[1] on the n'th block b of the SAP_BLOCKS grid. The solution is
+  obtained by applying nmr minimal residual steps, using b.s[2] as
+  workspace. On exit, the approximate solution and its residue are in
+  b.s[0] and b.s[1], respectively, while b.s[0],b.s[1] and b.s[2] are
+  unchanged on the odd points.
+
+void sap(float mu,int isolv,int nmr,spinor *psi,spinor *rho)
+  Application of one cycle of the multiplicative Schwarz procedure to
+  the approximate solution psi of the Wilson-Dirac equation, assuming
+  the associated residue is stored in the field rho (see the notes). The
+  block Dirac equation is solved using nmr iterations of the ordinary
+  (isolv=0) or the even-odd preconditioned (isolv=1) minimal residual
+  algorithm. On exit, the new approximate solution and its residue are
+  returned in the fields psi and rho.
+
+void alloc_sap_bufs(void)
+  Allocates and initializes the buffers and index arrays needed for
+  the program sap_com().
+
+ void sap_com(int ic,spinor *r)
+   Subtracts the Weyl field b.bb.w[0] on the boundaries of all black
+   (if ic=0) or all white (if ic=1) blocks b of the SAP_BLOCKS grid
+   from the global spinor field r. Before subtraction, the Weyl fields
+   on the block faces in direction ifc are expanded to Dirac spinor
+   fields s satisfying theta[ifc]*s=0.
+
+double sap_gcr(int nkv,int nmx,double res,double mu,
+               spinor_dble *eta,spinor_dble *psi,int *status)
+  Obtains an approximate solution psi of the Wilson-Dirac equation for
+  given source eta using the SAP-preconditioned GCR algorithm. See the
+  notes for the explanation of the parameters of the program.

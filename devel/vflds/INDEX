@@ -1,0 +1,19 @@
+
+Basic utility programs for complex fields
+
+check1        Allocation and initialization of the global vector fields.
+
+check2        Check of the programs in the module vinit.c.
+
+check3        Check of the communication programs cpv_int_bnd() and
+              cpv_ext_bnd().
+
+check4        Check of the communication programs cpvd_int_bnd() and
+              cpvd_ext_bnd().
+
+The programs check3 and check4 accept the option -bc <type> that allows the
+type of boundary condition to be chosen at runtime. When the option is not
+set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of check1 and check2.
+

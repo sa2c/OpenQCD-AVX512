@@ -1,0 +1,153 @@
+
+********************************************************************************
+
+                        SAP communication program
+
+********************************************************************************
+
+The application of the Schwarz Alternating Procedure (SAP) as a preconditioner
+for the Wilson-Dirac operator in lattice QCD is described in
+
+  M. Luescher: "Solution of the Dirac equation in lattice QCD using a domain
+                decomposition method", Comp. Phys. Commun. 156 (2004) 209.
+
+The SAP approximately solves the Dirac equation by running through the blocks
+in the SAP_BLOCKS block grid. On each block, the Dirac equation is solved, to
+some accuracy, on the interior points of the block using an iterative method
+such as the minimal residual algorithm. The current solution on the full
+lattice is then updated and the algorithm proceeds to the next block.
+
+In practice the solution is updated on all black blocks simultaneously and
+subsequently on all white blocks. Communications are then required after all
+blocks of given colour are processed. It is important that the communication
+is done efficiently. The programs in the module sap_com.c achieve this goal
+using an adapted layout of the field arrays and non-blocking communications.
+
+
+Block boundary fields
+---------------------
+
+Once the Dirac equation is solved on all black (ic=0) [or all white (ic=1)]
+blocks, the approximate solution and its residue on the full lattice must be
+updated. In particular, the residue receives a correction at the exterior
+boundaries of the blocks. The correction amounts to subtracting a Weyl field
+on the block boundaries from the residue (see below). However, before the
+correction can be applied, the Weyl field on the block faces that are not
+contained in the local lattice must be copied to the neighbouring MPI
+processes.
+
+The block faces in the -0,+0,..,-3,+3 direction are labeled by an index
+ifc=0,..,7. It is advantageous to organize the field communications in such a
+way that the fields on the block faces with fixed index ifc are processed
+together. In memory the Weyl fields are therefore arranged in two arrays
+
+  weyl snd_buf[2][8][],
+
+  weyl loc_buf[2][8][],
+
+where the first index is the colour ic of the blocks, the second the face
+index ifc and the third a point index. For a given colour ic and a given face
+index ifc, the Weyl fields collected in the array snd_buf[ic][ifc] are those
+on the faces b.bb[ifc] of the blocks b with colour ic where b.bb[ifc].ibn=1.
+Similarly the fields in the array loc_buf[ic][ifc] are those on the faces
+where b.bb[ifc].ibn=0. Within each of the arrays, the fields are ordered in
+block order and the Weyl spinors in each block segment are ordered according
+to the block geometry arrays (see block/README.block).
+
+
+Communication
+-------------
+
+After solving the Dirac equation on all blocks of a given colour ic, the
+buffers snd_buf[ic][ifc], ifc=0,..,7, need to be sent to the nodes with rank
+npr[ifc]. The data sent are received from the nodes with rank npr[ifc^0x1]
+and are stored in the [ic][ifc] components of the array
+
+  weyl rcv_buf[2][8][].
+
+Note that snd_buf[ic][ifc] has the same size on all MPI processes (and,
+consequently, the same size as rcv_buf[ic][ifc]). Translation invariance
+implies this to be so if the number of blocks on the local lattice in
+direction ifc is even. In the other case, there must be an even number of
+blocks touching the face of the local lattice with index ifc, because the
+total number of blocks in the local lattice is even. Half of these blocks have
+colour ic and the size of snd_buf[ic][ifc] is then again independent of the
+rank of the process.
+
+As explained in main/README.global, the MPI processes form a hypercubic grid.
+In this grid, each process has Cartesian coordinates cpr[mu] (mu=0,1,2,3). One
+can then define the parity bits
+
+  np=(cpr[0]+cpr[1]+cpr[2]+cpr[3])&0x1,
+
+  nmu[ifc]=cpr[ifc/2]&0x1,
+
+and first perform the communication from the np=0 to the np=1 nodes according
+to
+
+       np=0 nodes                        np=1 nodes
+
+  io=ifc^nmu[ifc]                   io=(ifc^nmu[ifc])^0x1
+  snd_buf[ic][io] -> npr[io]        rcv_buf[ic][io] <- npr[io^0x1]
+
+The communication from the np=1 to the np=0 nodes is then performed according
+to
+
+       np=0 nodes                        np=1 nodes
+
+  io=(ifc^nmu[ifc])^0x1             io=ifc^nmu[ifc]
+  rcv_buf[ic][io] <- npr[io^0x1]    snd_buf[ic][io] -> npr[io]
+
+The send and receive buffers are properly paired in both cases. Moreover,
+in each case, the size of the buffers communicated is the same on all nodes.
+All nodes thus have exactly the same communication load.
+
+This pattern is such that the communication proceeds, in each case, across the
+hyperplanes orthogonal to the direction ifc, the planes being separated by
+2x(local lattice size in that direction). If boundary conditions of type 0,1
+or 2 are chosen, no communications across the boundaries of the lattice at
+time 0 and NPROC0*L0-1 are performed. The chosen scheme allows these to be
+easily omitted.
+
+
+Subtraction from the residue
+----------------------------
+
+After communicating the Weyl fields, the fields to be subtracted from the
+residue are contained in the arrays loc_buf[ic][ifc] and rcv_buf[ic][ifc]. For
+any given colour index ic and face index ifc, these two arrays come one after
+the other in memory so that one has in fact a single array of Weyl spinors
+with address loc_buf[ic][ifc].
+
+The Weyl spinors w on the block boundaries are the first two components
+of the Dirac spinors s obtained by applying the block boundary part of
+the Dirac operator to a field on the block (see dirac/Dw_bnd.c). Since
+
+  theta[ifc]*s=0
+
+where
+
+  theta[ifc] = (1/2)*(1+gamma_mu) if ifc=2*mu,
+
+             = (1/2)*(1-gamma_mu) if ifc=2*mu+1,
+
+the knowledge of w allows s to be reconstructed uniquely. The reconstruction
+of the Dirac spinors is done on the fly by the program
+
+  sub_assign_w2s[ifc^0x1](imb[ic][ifc],nlbf[ic][ifc]+nsbf[ic][ifc],
+                          loc_buf[ic][ifc],res)
+
+which then subtracts the spinors from the residue field res on the full lattice
+(see sflds/Pbnd.c). The other parameters in this function call are:
+
+  nlbf[ic][ifc]         Number of elements of the buffer loc_buf[ic][ifc],
+
+  nsbf[ic][ifc]         Number of elements of the buffer snd_buf[ic][ifc]
+                        (= number of elements of rcv_buf[ic][ifc]),
+
+  imb[ic][ifc][]        Array of the indices of the points in the local lattice
+                        where the reconstructed spinors are to be subtracted
+                        from the residue.
+
+The index array imb[ic][ifc] is calculated and stored in the static memory of
+the module sap_com.c when the communication buffers are allocated.

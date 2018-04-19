@@ -1,0 +1,20 @@
+
+
+Schwarz Alternating Procedure (SAP) and SAP_GCR solver
+
+check1        Check of the block solver programs.
+
+check2        Direct test of the Schwarz alternating procedure.
+
+check3        Check and performance of the SAP+GCR solver.
+
+time1         Timing of blk_mres() and blk_eo_mres().
+
+time2         Timing of the SAP preconditioner.
+
+The programs check1, check2, time1 and time2 accept the option -bc <type> that
+allows the type of boundary condition to be chosen at runtime. When the option
+is not set, open boundary conditions are assumed.
+
+The option may be set but has no effect in the case of check3 (the boundary
+conditions are selected through the input parameter file in this case).

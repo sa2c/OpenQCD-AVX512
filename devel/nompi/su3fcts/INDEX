@@ -1,0 +1,32 @@
+
+SU(3) functions
+
+check1        Check of su3xsu3, su3dagxsu3, ...
+
+check2        Check of prod2su3alg, prod2u3alg and rotate_su3alg
+
+check3        Check of chexp_drv0() and ch2mat() using the spectral 
+              representation of X
+
+check4        Comparison of chexp_drv2() with chexp_drv0() and invariance 
+              of the calculated coefficients under rotations of X
+
+check5        Check of chexp_drv2() in the case of diagonal X
+
+check6        Verifies that exp(X) is in SU(3) and that exp(X)*exp(-X)=1
+
+check7        Check of expXsu3() using the spectral representation of X
+
+check8        Check of the programs cm3x3_zero(),...,cm3x3_lc2()
+
+time1         Timing of the SU(3) x SU(3)-vector multiplication 
+              (single-precision programs; also checks AVX/SSE macros)
+
+time2         Timing of the SU(3) x SU(3)-vector multiplication
+              (double-precision programs; also checks AVX/SSE macros)
+
+time3         Timing of su3xsu3, su3dagxsu3, ...
+
+time4         Timing of prod2su3alg, prod2u3alg and rotate_su3alg
+
+time5	      Timing of chexp_drv0(), chexp_drv2(), ch2mat() and expXsu3()

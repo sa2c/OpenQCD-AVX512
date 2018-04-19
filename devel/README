@@ -1,0 +1,11 @@
+
+This directory contains the check programs for the various modules.
+They should better be executed, for the chosen lattice parameters,
+before a simulation is started.
+
+The check programs for some of the program files that do not use the
+MPI library (such as the random number generators) are included in the
+directory "nompi". All other directories correspond to the module
+directories with the same name, and the check programs in these are
+MPI main programs.
+

@@ -1,0 +1,10 @@
+
+Complex matrix functions
+
+check1        Check of cmat_vec, cmat_add, ...
+
+check2        Check of cmat_vec_dble, cmat_add_dble, ...
+
+time1         Timing of cmat_vec and cmat_mul
+
+time2         Timing of cmat_vec_dble, cmat_mul_dble and cmat_inv_dble

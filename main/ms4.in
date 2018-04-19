@@ -1,0 +1,62 @@
+
+[Run name]
+name         Snoopy137
+
+[Directories]
+log_dir      ../data/ms4/log
+loc_dir      /ndata/qcd1/cnfg
+cnfg_dir     /data/qcd1/cnfg
+sfld_dir     /data/ms4/sfld
+
+[Configurations]
+first        1
+last         4
+step         1
+
+[Random number generator]
+level        0
+seed         73099
+
+[Dirac operator]
+kappa        0.1300
+csw          1.234
+
+[Boundary conditions]
+type         2
+phi          0.12 -0.56
+phi'         0.92 0.76
+cF           0.95
+cF'          0.90
+theta        0.5 1.0 -0.5
+
+[Source fields]
+x0           16
+nsrc         12
+
+[Solver 0]
+solver       DFL_SAP_GCR
+nkv          16
+isolv        1
+nmr          4
+ncy          5
+nmx          128
+res          1.0e-12
+
+[SAP]
+bs           8 4 4 4
+
+[Deflation subspace]
+bs           4 4 4 4
+Ns           28
+
+[Deflation subspace generation]
+kappa        0.13635
+mu           0.005
+ninv         10
+nmr          4
+ncy          4
+
+[Deflation projection]
+nkv          24
+nmx          512
+res          1.0e-2

@@ -1,0 +1,468 @@
+
+Main program qcd1
+
+SYNTAX
+
+qcd1 -i <filename> [-noloc] [-noexp] [-rmold] [-noms]
+                   [-c <filename> [-a [-norng]]]
+
+
+DESCRIPTION
+
+This program generates an ensemble of gauge fields representative of QCD with
+a multiplet of Wilson quarks. Exactly which theory is simulated depends on the
+parameters passed to the program. Moreover, one has a choice of boundary
+conditions in time (open, SF, open-SF and periodic). The simulation is based
+on a version of the HMC algorithm, which can be tuned in many ways via the
+input parameters.
+
+In the course of the simulation, the average plaquette <tr{U(p)}> is measured
+and the generated gauge field configurations are written out to files in
+specified directories. Further observables, constructed using the Wilson flow,
+are measured as well.
+
+
+COMMAND-LINE OPTIONS
+
+The program has only few options since most of the parameters are passed
+through an input file. The options are
+
+-i <filename>    Specifies the name of the input file. The name can be
+                 a fully qualified name or be specified relative to the
+                 working directory.
+
+-noloc           Normally the generated configurations are saved to the
+                 local disks on the nodes of the machine. In addition they
+                 are exported from process 0 using the export function (see
+                 archive/archive.c). Initial configurations can be imported
+                 or be read from the local disks. This option specifies that
+                 the local disks should not be used.
+
+-noexp           Do not export the generated field configurations.
+
+-rmold           Remove old configurations and keep only the one which
+                 was last saved to disk. The initial configuration
+                 given on the command line is not removed unless the
+                 -a option is set.
+
+-noms            Do not measure any observables except for the average
+                 plaquette.
+
+-c <filename>    This option instructs the program to read the initial
+                 gauge-field configuration from the specified file. The
+                 file must be in one of the configuration directories
+                 listed in the input file and its name must be of the form
+                 described below. The run starts from a random gauge-field
+                 configuration if this option is omitted.
+
+-a               This option specifies that the run is a continuation of a
+                 previous run. The -c <filename> option is required in this
+                 case and must point to the last configuration saved by
+                 the previous run. All output data are appended to the
+                 previous output files.
+
+-norng           Continuation runs normally start from the saved state
+                 of the random number generators. This option specifies
+                 that the traditional initialization of the generators is
+                 to be used (see section RANDOM NUMBER GENERATOR below).
+                 NOTE: starting from the saved state is not possible if
+                 the process grid sizes NPROC0,..,NPROC3 are changed.
+
+The concurrent use of the options -noloc and -noexp (in which case the
+generated configurations would not be saved anywhere) is considered to be an
+error and is not permitted. In a sequence of continuation runs, the -noms
+option must be set in either all or none of the runs.
+
+
+INPUT PARAMETERS
+
+The lattice size and the process grid must be defined in the file global.h
+(see README.global). All other parameters are read from the input file and the
+command line. An example of a valid input file is qcd1.in in this directory.
+The parameter values specified in this file are:
+
+[Run name]
+name         Snoopy137             # Run name = configuration base name
+
+[Directories]
+log_dir      ../data/qcd1/log      # Log file directory
+dat_dir      ../data/qcd1/dat      # Data file directory
+loc_dir      /ndata/qcd1/cnfg      # Local configuration directory
+cnfg_dir     /data/qcd1/cnfg       # Exported configuration directory
+
+[Lattice parameters]
+beta         6.0                   # Inverse gauge coupling
+c0           1.6667                # Coefficient of the plaquette term
+                                   # in the gauge action
+kappa        0.1300                # List of sea-quark hopping parameters
+csw          1.234                 # Coefficient of the SW term in the
+                                   # Dirac operator
+
+[Boundary conditions]
+type         2                     # Type of boundary condition (0: open,
+                                   # 1: SF, 2: open-SF, 3: periodic)
+phi          0.12 -0.56            # Boundary values of the gauge field at
+                                   # time 0
+phi'         0.92 0.76             # Boundary values of the gauge field at
+                                   # time NPROC0*L0
+cG           1.10                  # Gauge action improvement coefficient at
+                                   # time 0
+cG'          1.05                  # Gauge action improvement coefficient at
+                                   # time NPROC0*L0
+cF           0.95                  # Fermion action improvement coefficient
+                                   # at time 0
+cF'          0.90                  # Fermion action improvement coefficient
+                                   # at time NPROC0*L0
+theta        0.5 1.0 -0.5          # Angles specifying the phase-periodic bc
+                                   # of the quark fields in space
+
+[Random number generator]
+level        0                     # Ranlux level
+seed         73099                 # Ranlux seed
+
+[HMC parameters]
+actions      0 1 2                 # Gauge and pseudo-fermion actions included
+                                   # in the simulation
+npf          2                     # Number of pseudo-fermion fields
+mu           0.01 1.0              # List of twisted-mass parameters
+nlv          3                     # Number of levels of the integrator for
+                                   # the molecular-dynamics (MD) equations
+tau          0.5                   # MD trajectory length
+
+[MD trajectories]
+nth          320                   # Number of thermalization trajectories
+ntr          32000                 # Total number of trajectories
+dtr_log      4                     # Separation of log entries
+dtr_ms       8                     # Separation of measurements
+dtr_cnfg     32                    # Separation of configuration saves
+
+Then follow the parameters of the integrator levels, the actions, the MD
+forces and the solvers for the Dirac equation. Their format is described in
+the file doc/parms.pdf and on top of the modules
+
+flags/mdint_parms.c
+flags/action_parms.c
+flags/force_parms.c
+flags/solver_parms.c
+
+The integrator levels are labeled from 0 (innermost level, usually including
+the force deriving from the chosen gauge action) to nlv-1 (outermost level).
+Action, force and solver labels must be integers but may otherwise be chosen
+arbitrarily. There must be a section for all actions, forces and solvers used,
+and for each action section there must be a corresponding force section with
+the same label.
+
+Finally, if measurements using the Wilson flow are to be made, the section
+
+[Wilson flow]
+integrator   RK3                   # EULER: Euler, RK2: 2nd order Runge-Kutta
+                                   # RK3: 3rd order Runge-Kutta
+eps          2.0e-2                # Integration step size
+nstep        100                   # Total number of integration steps
+dnms         10                    # Number of steps between measurements
+
+is required.
+
+The chosen parameter values must satisfy the following constraints:
+
+- "nth" and "ntr" must be integer multiples of "dtr_cnfg".
+
+- "nth" must be equal to zero in a continuation run (option -a).
+
+- "dtr_cnfg" must be a multiple of "dtr_log".
+
+- "dtr_cnfg" must be a multiple of "dtr_ms" and the latter must be
+  a multiple of "dtr_log".
+
+- The number "nstep" of Wilson flow integration steps must be a multiple
+  of "dnms".
+
+Depending on the specified options, the values of some parameters are ignored.
+In particular,
+
+- "loc_dir" is not used if the -noloc option is set.
+
+- "cnfg_dir" is not used if -noexp is set and if the starting
+   configuration is not of the exported configuration type.
+
+- "lambda" is only required if the 2nd order OMF integrator is used.
+
+- The section "Wilson flow" and the parameter "dtr_ms" can be omitted
+  if the -noms option is set.
+
+Superfluous sections and parameters may be deleted or commented out. If
+present they are not read by the program and have no effect on the run. In
+particular, the constraints mentioned above involving these parameters need
+not be satisfied.
+
+
+INITIAL FIELD CONFIGURATION
+
+The initial field configuration specified on the command line with the -c
+option can be in imported or exported form (see archive/archive.c). In the
+case of imported configurations, each MPI process reads a file of the form
+
+  <name>_<int>
+
+where <int> is the process number. On the command line, imported and exported
+configurations are distinguished by an asterix (*) like
+
+  <name>*      Imported configuration
+
+  <name>       Exported configuration
+
+where it goes without saying that the string <name> must not contain an
+asterix at its end.
+
+Configurations in imported form are read from the directory loc_dir on the
+local disks of the machine. The sizes of the current lattice and those read
+from the files must be the same in this case.
+
+If the configuration is in exported form, it is read from the directory
+cnfg_dir on a disk accessible from process 0. The sizes of the current lattice
+need not be the same as those read from the configuration file, but must be
+integer multiples of the latter. The field is periodically extended if the
+lattice sizes do not match (see archive/archive.c for further explanations).
+
+
+FILES
+
+The program writes the results of the calculations to the files
+
+  <run name>.log       Log file
+  <run name>.par       Parameter file
+  <run name>.dat       Data file
+  <run name>.ms.dat    Measurement data file
+  <run name>.rng       Exported state of the random number generators
+
+  <run name>.log~      Backup log file
+  <run name>.par~      Backup parameter file
+  <run name>.dat~      Backup data file
+  <run name>.ms.dat~   Backup measurement data file
+  <run name>.rng~      Backup random number generator state file
+
+  <run name>n3_0       Imported configuration file written by process 0
+  <run name>n3_1       Imported configuration file written by process 1
+  <run name>n3_2       Imported configuration file written by process 2
+     .....                       .....
+
+  <run name>n3         Exported configuration file
+
+Here n3 identifies configuration number 3. The directories in which these
+files are stored are the ones specified in the input file.
+
+The directories "log_dir", "dat_dir" and "cnfg_dir" must be accessible from
+process 0, while each process must be able to access the directory "loc_dir"
+(unless the option -noloc is set). The "loc_dir" directory seen from different
+processes may or may not be physically the same.
+
+Configurations are saved after the first "nth" trajectories and then after
+every "dtr_cnfg" trajectories. The backup copies *.log~, *.dat~ and *.rng~ of
+the *.log, *.dat and *.rng files are created each time a new configuration is
+saved to disk.
+
+The parameter file *.par is created when a new run is started. It contains all
+relevant lattice and run parameters in binary form. Continuation runs read the
+file and check whether the parameter values match those read from the input
+file. If a mismatch is discovered, the program is halted and an error message
+is printed to the file STARTUP_ERROR in the program directory.
+
+
+EXAMPLES
+
+The command
+
+   qcd1 -i qcd1.in -c <name>*
+
+starts a new run from the specified configuration <name> which is searched for
+in the "loc_dir" directory on the local disks of the machine. If instead the
+run should be a continuation run, starting from the last configuration of a
+previous run, the command would be
+
+   qcd1 -i qcd1.in -c <run name>n3* -a
+
+In this case the *.log, *.par, *.dat and *.rng files of the previous run must
+be found in the directories "log_dir" and "dat_dir", respectively. Using these
+files, and the configuration name given on the command line, a number of
+checks are performed to ensure that the run is indeed a continuation of the
+previous one.
+
+In these two examples, the configuration filenames could also be <name> and
+<run name>n3 (i.e. without a "*") in which case the program assumes that the
+configuration is an exported one. The configuration is then searched for in
+the directory "cnfg_dir" by process 0 only. If the -c option is omitted, the
+gauge field variables are set to uniformly distributed random SU(3) matrices.
+
+
+RUN DATA
+
+The data taken after every "dtr_log" trajectories are collected in a structure
+
+typedef struct
+{
+   int nt,iac;
+   double dH,avpl;
+} dat_t;
+
+with elements
+
+nt                 trajectory number,
+
+dH                 MD hamiltonian deficit at the end of the trajectory,
+
+iac                0 or 1 depending on whether the trajectory was accepted
+                   or not,
+
+avpl               average plaquette of the current gauge field.
+
+The average plaquette is equal to
+
+   plaq_wsum_dble(1)/npl,
+
+   npl=6*(N0-1)*N1*N2*N3 for open boundary conditions,
+
+      =6*N0*N1*N2*N3     otherwise,
+
+where N0=NPROC0*L0, etc., are the lattice sizes (see uflds/plaq_sum.c). In the
+course of the simulation, the collected data are written in binary form to the
+*.dat file in a contiguous manner and without any header data at the beginning
+of the file. They are also printed to the log file together with the average
+solver iteration numbers and some further information.
+
+A simple main program that reads and analyses the run data files is included
+in the directory ../devel/nompi/main.
+
+
+MEASUREMENT DATA
+
+Unless the -noms option is set, the program performs measurements of a set of
+observables based on the Wilson flow after every period of "dtr_ms" MD
+trajectories. No measurements are performed in the thermalization phase (i.e.
+at trajectory numbers less than "nth").
+
+Each time a measurement is made, the Wilson flow is integrated from flow time
+0 to time "nstep"*"eps" in steps of eps using the specified integrator. After
+every "dnms" integration steps, the time-slice sums of the densities of the
+Wilson plaquette action, the Yang-Mills action and the topological charge are
+computed (see uflds/plaq_sum.c, tcharge/ftensor.c and tcharge/tcharge.c).
+
+At the beginning of the measurement data file the program writes the data
+contained in the header structure
+
+static struct
+{
+   int dn,nn,tmax;
+   double eps;
+} file_head;
+
+where dn="dnms", nn="nstep"/"dnms" and tmax=NPROC0*L0. After the header data,
+the data file contains a sequence of data structures
+
+static struct
+{
+   int nt;
+   double **Wsl,**Ysl,**Qsl;
+} data;
+
+labeled by the molecular-dynamics trajectory number nt where the measurement
+was made. In each case the time-slice sums of the densities of the Wilson
+plaquette action, the Yang-Mills action and the topological charge are written
+to the arrays
+
+  Wsl[in][t]   (in=0,..,nn, t=0,..,tmax-1)
+  Ysl[in][t]
+  Qsl[in][t]
+
+See the functions write_file_head() and write_data() in the program file
+qcd1.c for the exact order in which the data are written to the output files.
+
+
+BINARY FILE FORMAT
+
+The log files are ASCII files that should be readable on any machine.
+Configuration files and the data files, on the other hand, are written in
+binary format using the fwrite() function. Integers are written as 4 byte
+signed integers and floating-point numbers according to the IEEE-754 standard
+for double-precision numbers.
+
+In the case of the exported configurations, the *.par and the *.dat files, and
+if the machine is big endian, the data are converted to little endian byte
+order before they are written to disk (see archive/archive.c and the functions
+write_dat(), read_dat(), write_file_head() and write_data() defined in the
+qcd1.c file).
+
+
+RANDOM NUMBER GENERATOR
+
+Random numbers are generated using the ranlux generator. Depending on the
+context, either single- or double-precision random numbers are generated. The
+initialization of the generator is as follows:
+
+- In the case of a new run, the program reads the parameters "level" and
+  "seed" from the input file and uses these to initialize the generator.
+
+- Continuation runs starting from an imported field configuration read
+  the state of the generator from the configuration files.
+
+- Continuation runs starting from an exported field configuration do
+  the following:
+
+  o If the option -norng is set, the parameters "level" and "seed" are read
+    from the input parameter file and the generator is initialized using
+    "seed"^n (bitwise exclusive or) as the seed value, where n is the number
+    of the last field configuration saved in the previous run.
+
+  o Otherwise the state of the generator is read from the file <run name>.rng.
+    The generator is thus reset to the state it had at the end of the previous
+    run. Note that the process grid NPROC0x..xNPROC3 must be unchanged in this
+    case from one run to the next (an error occurs if it is not).
+
+In a sequence of continuation runs, it is therefore recommended to leave the
+process grid unchanged and to make no use of the option -norng. If the process
+grid is changed at some point, the next run must start from an exported field
+configuration and the option -norng must be set. In all cases, the parameters
+"level" and "seed" on the input parameter file may be left unchanged.
+
+
+SAFETY MEASURES AND ERROR REPORTING
+
+A number of safety measures have been implemented:
+
+- It is not possible to overwrite an existing *.log or *.dat file; these
+  must first be deleted or renamed by hand if a run is to be repeated.
+
+- Appending a run to a previous run, but not from the last saved
+  configuration of that run, is not possible.
+
+- The accessibility of the various directories and the compatibility
+  of the selected options is checked at the beginning of the program.
+
+Any attempt to force illegal operations leads to an abnormal termination of
+the program, with an informative message being written either to the *.log
+file or the file STARTUP_ERROR in the program directory (if the error occurs
+before the log file is opened).
+
+On the other hand, the following should be kept in mind:
+
+- Filenames may not be longer than 127 characters. The program
+  checks at an early stage whether this is the case or not. Longer
+  filenames can be accommodated by setting the macro NAME_SIZE in
+  the global.h header file to a larger value.
+
+- Once a run started successfully, the configurations generated
+  are saved unconditionally, i.e. any existing field configurations
+  with matching filenames are overwritten.
+
+
+CHECKPOINTS AND EARLY TERMINATION
+
+The program can be stopped gracefully by touching a file in the log directory
+with the same name as the log file but with extension .end instead of .log. It
+may take a while until the program exits, because it will only do so at the
+points where the gauge field configuration is saved to disk.
+
+If the machine crashes, or if the program was stopped in the way described,
+the run can always be continued starting from the saved configuration and
+output files. However, after a crash, the *.log and *.dat files may be
+corrupted, in which case they must first be restored from the backup *.log~
+and *.dat~ files.

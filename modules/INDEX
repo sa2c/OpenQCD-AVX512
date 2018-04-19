@@ -1,0 +1,68 @@
+
+********************************************************************************
+
+                             Module Directories
+
+********************************************************************************
+
+archive              Import and export programs for the double-precision 
+                     gauge and quark fields.
+
+block                Definition of blocks and block grids. 
+
+dirac                Programs for the O(a)-improved Wilson-Dirac operator.
+
+dfl                  Deflation subspace generation and deflated SAP+GCR
+                     solver.
+
+flags                Flags and parameter data base.
+
+forces               Molecular-dynamics forces and associated actions.
+
+lattice              Lattice geometry and programs implementing the boundary 
+                     conditions in time.
+
+linalg               Generic linear algebra programs for spinor fields,
+                     fields with values in the Lie algebra of SU(3) and
+                     complex scalar fields. 
+
+linsolv              Generic Krylov-space solvers.
+
+little               Computation and action of the little Dirac operator
+                     (= restriction of the Wilson-Dirac operator to the
+                     the deflation subspace).
+
+mdflds               Allocation of the fundamental momentum, force
+                     and pseudo-fermion fields. 
+
+nompi                Programs used in non-MPI check and analysis programs.
+
+random               Random number generator, gaussian random numbers,
+                     initialization of ranlux.
+
+ratfcts              Rational function data base.
+
+sap                  Schwarz alternating procedure and SAP+GCR solver.
+
+sflds                Generic initialization and assignment programs for
+                     spinor fields. 
+
+su3fcts              Collection of 3x3 matrix functions.
+
+sw_term              Computation of the Sheikholeslami-Wohlert term.
+
+tcharge              Symmetric field tensor and topological charge.
+
+uflds                Allocation of the fundamental gauge fields. 
+
+update               Molecular-dynamics integration, HMC algorithm and
+                     reweighting factors.
+
+utils                Utility programs: aligned allocation, error functions, 
+                     endianess functions, functions needed to read input
+                     files, workspace allocation.
+
+vflds                Generic initialization and assignment programs for
+                     for complex scalar fields. 
+
+wflow                Integration of the (Wilson) gradient flow.
