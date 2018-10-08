@@ -13,6 +13,8 @@
 *
 *******************************************************************************/
 
+#ifdef AVX512
+
 #include "global.h"
 #include "linalg.h"
 #include "mpi.h"
@@ -20,7 +22,7 @@
 
 #include "avx512.h"
 
-void mulc_spinor_add_avx512(int vol, spinor *s, spinor const *r, complex z)
+void mulc_spinor_add(int vol, spinor *s, spinor *r, complex z)
 {
   spinor *sm;
   __m128 tr, ti;
@@ -75,14 +77,14 @@ extern __inline double _mm512_reduce_add_ps( __m512 a ) {
 }
 #endif
 
-complex_dble spinor_prod_avx512(int vol, spinor const *s,
-                          spinor const *r )
+complex spinor_prod(int vol, int icom, spinor *s, spinor *r )
 {
-  spinor const *sm, *smb;
+  complex z;
+  complex_dble v, w;
+    spinor const *sm, *smb;
   __m512 tr, ti, s1, s2, s3, r1, r2, r3, sign;
 
   double x, y;
-  complex_dble z, v, w;
 
   x = 0.0;
   y = 0.0;
@@ -131,8 +133,22 @@ complex_dble spinor_prod_avx512(int vol, spinor const *s,
 
   }
 
-  z.re = x;
-  z.im = y;
+  v.re = x;
+  v.im = y;
 
+  if ((icom==1)&&(NPROC>1))
+  {
+     MPI_Reduce(&v.re,&w.re,2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+     MPI_Bcast(&w.re,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+     z.re=(float)(w.re);
+     z.im=(float)(w.im);
+  }
+  else
+  {
+     z.re=(float)(v.re);
+     z.im=(float)(v.im);
+  }
   return z;
 }
+
+#endif

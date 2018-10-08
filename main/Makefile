@@ -26,7 +26,7 @@ BLOCK = block blk_grid map_u2blk map_sw2blk map_s2blk
 
 DFL = dfl_geometry dfl_subspace ltl_gcr dfl_sap_gcr dfl_modes
 
-DIRAC = Dw_dble Dw Dw_bnd
+DIRAC = Dw_dble Dw Dw_bnd Dw_avx512 Dw_dble_avx512
 
 FLAGS = flags action_parms dfl_parms force_parms hmc_parms lat_parms \
         mdint_parms rat_parms rw_parms sap_parms solver_parms
@@ -36,7 +36,8 @@ FORCES = force0 force1 force2 force3 force4 force5 \
 
 LATTICE = bcnds uidx ftidx geometry
 
-LINALG = salg salg_dble valg valg_dble liealg cmatrix_dble cmatrix
+LINALG = salg salg_dble valg valg_dble liealg cmatrix_dble cmatrix \
+         salg_avx512 salg_dble_avx512
 
 LINSOLV = cgne mscg fgcr fgcr4vd
 
@@ -54,7 +55,7 @@ SFLDS = sflds scom sdcom Pbnd Pbnd_dble
 
 SU3FCTS = chexp su3prod su3ren cm3x3 random_su3
 
-SW_TERM = pauli pauli_dble swflds sw_term
+SW_TERM = pauli pauli_dble swflds sw_term pauli_avx512 pauli_dble_avx512
 
 TCHARGE = ftcom ftensor tcharge ym_action
 
@@ -74,12 +75,6 @@ STD_MODULES = $(ARCHIVE) $(BLOCK) $(DFL) $(DIRAC) $(FLAGS) $(FORCES) \
           $(UFLDS) $(UPDATE) $(UTILS) $(VFLDS) $(WFLOW)
 
 
-AVX512_MODULES = Dw_avx512 Dw_dble_avx512 salg_avx512 salg_dble_avx512 \
-	pauli_avx512 pauli_dble_avx512
-
-AVX512_ASM_MODULES = Dw_avx512_asm Dw_dble_avx512_asm salg_avx512_asm \
-	salg_dble_avx512_asm pauli_avx512_asm pauli_dble_avx512_asm
-
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -93,10 +88,10 @@ MDIR = ../modules
 VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/archive:$(MDIR)/linalg:\
           $(MDIR)/random:$(MDIR)/uflds:$(MDIR)/mdflds:$(MDIR)/su3fcts:\
           $(MDIR)/utils:$(MDIR)/forces:$(MDIR)/sflds:$(MDIR)/dirac:\
-	  			$(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
-	  			$(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
+	  $(MDIR)/sw_term:$(MDIR)/tcharge:$(MDIR)/block:$(MDIR)/sap:\
+	  $(MDIR)/linsolv:$(MDIR)/dfl:$(MDIR)/vflds:$(MDIR)/little:\
           $(MDIR)/update:$(MDIR)/wflow:$(MDIR)/ratfcts:\
-					$(MDIR)/linalg/avx512:$(MDIR)/dirac/avx512:$(MDIR)/sw_term/avx512
+	  $(MDIR)/linalg/avx512:$(MDIR)/dirac/avx512:$(MDIR)/sw_term/avx512
 
 
 
@@ -116,7 +111,7 @@ LIBPATH = $(MPI_HOME)/lib
 
 CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
          -Wall -Wno-long-long -Wstrict-prototypes \
-         -O2 -DAVX512
+         -O2 -DAVX512 -DAVX -DPM
 
 LFLAGS = $(CFLAGS)
 
@@ -128,7 +123,6 @@ LFLAGS = $(CFLAGS)
 #
 # -DCGNE_DBG -DFGCR_DBG -FGCR4VD_DBG -DMSCG_DBG
 # -DDFL_MODES_DBG -DMDINT_DBG -DRWRAT_DBG
-# -DAVX512 -DAVX512_ASM
 #
 # Add these (or some of these) to CFLAGS if debugging output is desired.
 
@@ -140,15 +134,7 @@ CLINKER=$(CC)
 
 
 #Check CFLAGS to find which AVX512 flags are active
-ifneq (,$(findstring AVX512_ASM,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_ASM_MODULES)
-else
-ifneq (,$(findstring AVX512,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_MODULES)
-else
 MODULES= $(STD_MODULES)
-endif
-endif
 
 PGMS= $(MAIN) $(MODULES)
 
@@ -159,16 +145,8 @@ PGMS= $(MAIN) $(MODULES)
 $(addsuffix .d,$(PGMS)): %.d: %.c Makefile
 	@ $(GCC) -ansi $< -MM $(addprefix -I,$(INCPATH)) -o $@
 
-
 # rule to compile source programs
 $(addsuffix .o,$(MAIN) $(STD_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-# pattern to compile files in the avx512 directiories
-$(addsuffix .o,$(AVX512_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-$(addsuffix .o,$(AVX512_ASM_MODULES)): %.o: %.s Makefile
 	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
 # rule to link object files

@@ -25,7 +25,7 @@ FLAGS = flags lat_parms dfl_parms
 
 LATTICE = bcnds uidx ftidx geometry
 
-LINALG = salg_dble liealg cmatrix_dble
+LINALG = salg_dble liealg cmatrix_dble salg_dble_avx512
 
 RANDOM = ranlux ranlxs ranlxd gauss
 
@@ -33,7 +33,7 @@ SFLDS = sflds
 
 SU3FCTS = chexp su3prod su3ren cm3x3 random_su3
 
-SW_TERM = pauli pauli_dble swflds sw_term
+SW_TERM = pauli pauli_dble swflds sw_term pauli_avx512 pauli_dble_avx512
 
 TCHARGE = ftcom ftensor
 
@@ -41,14 +41,8 @@ UFLDS = plaq_sum shift uflds udcom
 
 UTILS = endian error hsum mutils utils wspace
 
-STD_MODULES = $(FLAGS) $(LATTICE) $(LINALG) $(RANDOM) $(UFLDS) \
+MODULES = $(FLAGS) $(LATTICE) $(LINALG) $(RANDOM) $(UFLDS) \
           $(SU3FCTS) $(UTILS) $(SFLDS) $(TCHARGE) $(SW_TERM)
-
-AVX512_MODULES = salg_dble_avx512 \
-					pauli_avx512 pauli_dble_avx512
-
-AVX512_ASM_MODULES = salg_dble_avx512_asm \
- 					pauli_avx512_asm pauli_dble_avx512_asm
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -62,7 +56,7 @@ MDIR = ../../modules
 VPATH = .:$(MDIR)/flags:$(MDIR)/lattice:$(MDIR)/linalg:$(MDIR)/random:\
           $(MDIR)/uflds:$(MDIR)/su3fcts:$(MDIR)/utils:$(MDIR)/sflds:\
           $(MDIR)/tcharge:$(MDIR)/sw_term:\
-					$(MDIR)/linalg/avx512:$(MDIR)/sw_term/avx512
+          $(MDIR)/linalg/avx512:$(MDIR)/sw_term/avx512
 
 
 # additional include directories
@@ -81,7 +75,7 @@ LIBPATH = $(MPI_HOME)/lib
 
 CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
          -Wall -Wno-long-long -Wstrict-prototypes \
-         -O2 -DAVX512
+         -O2 -DAVX512 -DAVX -DPM
 
 LFLAGS = $(CFLAGS)
 
@@ -90,17 +84,6 @@ LFLAGS = $(CFLAGS)
 SHELL=/bin/bash
 CC=mpicc
 CLINKER=$(CC)
-
-#Check CFLAGS to find which AVX512 flags are active
-ifneq (,$(findstring AVX512_ASM,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_ASM_MODULES)
-else
-ifneq (,$(findstring AVX512,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_MODULES)
-else
-MODULES= $(STD_MODULES)
-endif
-endif
 
 PGMS= $(MAIN) $(MODULES)
 
@@ -113,14 +96,7 @@ $(addsuffix .d,$(PGMS)): %.d: %.c Makefile
 
 
 # rule to compile source programs
-$(addsuffix .o,$(MAIN) $(STD_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-# pattern to compile files in the avx512 directiories
-$(addsuffix .o,$(AVX512_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-$(addsuffix .o,$(AVX512_ASM_MODULES)): %.o: %.s Makefile
+$(addsuffix .o,$(MAIN) $(MODULES)): %.o: %.c Makefile
 	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
 # rule to link object files

@@ -13,6 +13,8 @@
 *
 *******************************************************************************/
 
+#ifdef AVX512
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -26,7 +28,8 @@ typedef union
 
 #include "avx512.h"
 
-void mul_pauli2_avx512(float mu, pauli *m, spinor *source, spinor *res )
+
+void mul_pauli2(float mu, pauli *m, spinor *source, spinor *res )
 {
   spin_t *ps, *pr;
   float const *u, *u2;
@@ -228,3 +231,5 @@ void mul_pauli2_avx512(float mu, pauli *m, spinor *source, spinor *res )
   t128b = _mm_add_ps( t128a, t128b );
   _mm_storeu_ps( &(*r2).c2.c2.re, t128b );
 }
+
+#endif

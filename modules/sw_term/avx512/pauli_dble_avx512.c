@@ -12,6 +12,9 @@
 * implementations.
 *
 *******************************************************************************/
+
+#ifdef AVX512
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -30,7 +33,8 @@ typedef union
 
 #include "avx512.h"
 
-void mul_pauli2_dble_avx512(double mu, pauli_dble *m, weyl_dble *s, weyl_dble *r)
+
+void mul_pauli2_dble(double mu, pauli_dble *m, weyl_dble *s, weyl_dble *r)
 {
   double const  *u = m->u, *u2 = (m+1)->u;
 
@@ -481,3 +485,5 @@ void bck_house_avx512( complex_dble *aa, complex_dble *dd, double * rr )
     }
   }
 }
+
+#endif

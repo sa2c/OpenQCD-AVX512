@@ -11,6 +11,8 @@
 * See ../Dw.c for more details and alternative implementations
  *******************************************************************************/
 
+#ifdef AVX512
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -215,3 +217,5 @@ void deo_avx512(int *piup, int *pidn, su3 *u, spinor *pl, float ceo, spin_t *rs)
   _avx512_dirac_combine_f_4( a3, b3 );
   _avx512_write_4_halfspinor_f_reverse_dn( a1, a2, a3, &(*sm).c3.c1.re, &(*sp).c3.c1.re, &(*sm2).c3.c1.re, &(*sp2).c3.c1.re );
 }
+
+#endif

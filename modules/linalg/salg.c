@@ -90,40 +90,6 @@ static void alloc_wrotate(int n)
 }
 
 
-#if (defined AVX512 )
-
-void mulc_spinor_add_avx512(int vol, spinor *s, spinor const *r, complex z);
-void mulc_spinor_add(int vol, spinor *s, spinor *r, complex z)
-{
-  mulc_spinor_add_avx512( vol, s, r, z);
-}
-
-complex_dble spinor_prod_avx512(int vol, spinor *s, spinor *r );
-complex spinor_prod(int vol, int icom, spinor *s, spinor *r )
-{
-  complex z;
-  complex_dble v, w;
-
-  v = spinor_prod_avx512(vol, s, r);
-
-  if ((icom==1)&&(NPROC>1))
-  {
-     MPI_Reduce(&v.re,&w.re,2,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-     MPI_Bcast(&w.re,2,MPI_DOUBLE,0,MPI_COMM_WORLD);
-     z.re=(float)(w.re);
-     z.im=(float)(w.im);
-  }
-  else
-  {
-     z.re=(float)(v.re);
-     z.im=(float)(v.im);
-  }
-  return z;
-}
-
-#endif
-
-
 
 #if (defined AVX)
 #include "avx.h"
@@ -362,7 +328,7 @@ complex spinor_prod(int vol,int icom,spinor *s,spinor *r)
 }
 #endif
 
-void mulc_spinor_add(int vol, spinor *s, spinor const *r, complex z)
+void mulc_spinor_add(int vol, spinor *s, spinor *r, complex z)
 {
   spinor *sm;
 

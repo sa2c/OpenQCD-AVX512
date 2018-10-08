@@ -11,6 +11,9 @@
 * See ../Dw_dble.c for more details and alternative implementations
  *******************************************************************************/
 
+#ifdef AVX512
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -254,3 +257,5 @@ void deo_dble_avx512( const int *piup, const int *pidn, const su3_dble *u,  spin
   _avx512_add_to_spinors( b1, b2, b3, &(*sp).c1.c1.re, &(*sm).c1.c1.re );
   _avx512_add_to_spinors_5( b1, b2, b3, &(*sp).c3.c1.re, &(*sm).c3.c1.re );
 }
+
+#endif

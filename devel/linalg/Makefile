@@ -25,7 +25,7 @@ FLAGS = flags lat_parms dfl_parms
 
 LATTICE = bcnds uidx geometry
 
-LINALG = cmatrix_dble liealg salg salg_dble valg valg_dble
+LINALG = cmatrix_dble liealg salg salg_dble valg valg_dble salg_avx512 salg_dble_avx512
 
 RANDOM = ranlux ranlxs ranlxd gauss
 
@@ -42,9 +42,6 @@ VFLDS = vflds vinit
 MODULES = $(FLAGS) $(LATTICE) $(RANDOM) $(LINALG) $(UTILS) \
           $(UFLDS) $(SFLDS) $(SU3FCTS) $(VFLDS)
 
-AVX512_MODULES = salg_avx512 salg_dble_avx512
-
-AVX512_ASM_MODULES = salg_avx512_asm salg_dble_avx512_asm
 
 # Logging option (-mpilog or -mpitrace or -mpianim)
 
@@ -76,7 +73,7 @@ LIBPATH = $(MPI_HOME)/lib
 
 CFLAGS = -std=c89 -pedantic -fstrict-aliasing \
          -Wall -Wno-long-long -Wstrict-prototypes \
-         -O2 -DAVX512
+         -O2 -DAVX512 -DAVX -DPM
 
 LFLAGS = $(CFLAGS)
 
@@ -86,17 +83,6 @@ LFLAGS = $(CFLAGS)
 SHELL=/bin/bash
 CC=mpicc
 CLINKER=$(CC)
-
-#Check CFLAGS to find which AVX512 flags are active
-ifneq (,$(findstring AVX512_ASM,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_ASM_MODULES)
-else
-ifneq (,$(findstring AVX512,$(CFLAGS)))
-MODULES= $(STD_MODULES) $(AVX512_MODULES)
-else
-MODULES= $(STD_MODULES)
-endif
-endif
 
 PGMS= $(MAIN) $(MODULES)
 
@@ -109,14 +95,7 @@ $(addsuffix .d,$(PGMS)): %.d: %.c Makefile
 
 
 # rule to compile source programs
-$(addsuffix .o,$(MAIN) $(STD_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-# pattern to compile files in the avx512 directiories
-$(addsuffix .o,$(AVX512_MODULES)): %.o: %.c Makefile
-	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
-
-$(addsuffix .o,$(AVX512_ASM_MODULES)): %.o: %.s Makefile
+$(addsuffix .o,$(MAIN) $(MODULES)): %.o: %.c Makefile
 	$(CC) $< -c $(CFLAGS) $(LOGOPTION) $(addprefix -I,$(INCPATH))
 
 # rule to link object files

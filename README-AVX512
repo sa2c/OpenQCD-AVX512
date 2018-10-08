@@ -9,8 +9,6 @@ DESCRIPTION
 
    The extension is enabled with the -DAVX521 flag in CFLAGS in the Makefiles.
 
-   To enable assembly versions pre-compiled for Skylake Xeon Scalable CPUs also include -DAVX512_ASM in CFLAGS.
-
 
 
 AUTHORS

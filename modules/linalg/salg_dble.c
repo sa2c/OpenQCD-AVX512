@@ -108,7 +108,6 @@ static void alloc_wrotate(int n)
 #if (defined AVX512)
 #include "avx512.h"
 
-
 complex_dble spinor_prod_dble_avx512( spinor_dble *s, spinor_dble *smb, spinor_dble *r);
 complex_dble spinor_prod_dble(int vol, int icom, spinor_dble *s,
                               spinor_dble *r)
@@ -248,35 +247,6 @@ double norm_square_dble(int vol, int icom, spinor_dble *s)
   return smx;
 }
 
-void mulc_spinor_add_dble_avx512(int vol, spinor_dble *s, spinor_dble *r,
-                          complex_dble z);
-void mulc_spinor_add_dble(int vol, spinor_dble *s, spinor_dble *r,
-                          complex_dble z)
-{
-  mulc_spinor_add_dble_avx512(vol,s,r,z);
-}
-
-void mulr_spinor_add_dble_avx512(int vol, spinor_dble *s, spinor_dble *r,
-                          double c);
-void mulr_spinor_add_dble(int vol, spinor_dble *s, spinor_dble *r,
-                          double c)
-{
-  mulr_spinor_add_dble_avx512(vol,s,r,c);
-}
-
-void combine_spinor_dble_avx512(int vol, spinor_dble *s, spinor_dble *r,
-                         double cs, double cr);
-void combine_spinor_dble(int vol, spinor_dble *s, spinor_dble *r,
-                         double cs, double cr)
-{
-  combine_spinor_dble_avx512(vol,s,r,cs,cr);
-}
-
-void scale_dble_avx512(int vol, double c, spinor_dble *s);
-void scale_dble(int vol, double c, spinor_dble *s)
-{
-  scale_dble_avx512(vol,c,s);
-}
 
 void rotate_dble_avx512(int n, int ix, spinor_dble **ppk, spinor_dble *psi, complex_dble *v);
 void rotate_dble(int vol, int n, spinor_dble **ppk, complex_dble *v)
@@ -295,19 +265,6 @@ void rotate_dble(int vol, int n, spinor_dble **ppk, complex_dble *v)
     }
   }
 }
-
-void mulg5_dble_avx512(int vol, spinor_dble *s);
-void mulg5_dble(int vol, spinor_dble *s)
-{
-  mulg5_dble_avx512( vol, s );
-}
-
-void mulmg5_dble_avx512(int vol, spinor_dble *s);
-void mulmg5_dble(int vol, spinor_dble *s)
-{
-  mulmg5_dble_avx512( vol, s );
-}
-
 
 
 #elif (defined AVX)
